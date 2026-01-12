@@ -2,7 +2,7 @@ import sqlalchemy as sa
 from sqlalchemy import ForeignKey
 from uuid import UUID, uuid4
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.services.data_service import Base
+from services.db.base_service import Base
 
 
 class Share(Base):

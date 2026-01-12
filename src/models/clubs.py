@@ -2,7 +2,7 @@ from typing import List
 import sqlalchemy as sa
 from uuid import UUID, uuid4
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.services.data_service import Base
+from services.db.base_service import Base
 from src.models.clubsandplayers import joined_table
 
 
@@ -13,4 +13,4 @@ class Club(Base):
     home_town: Mapped[str] = mapped_column(sa.String())
     creation_date: Mapped[sa.Date] = mapped_column(sa.Date())
 
-    players: Mapped[List["Player"]] = relationship(secondary=joined_table, back_populates='clubs')
+    players: Mapped[List["Player"]] = relationship(secondary=joined_table, back_populates='clubs', lazy='selectin')
