@@ -14,7 +14,7 @@ class ClubSchema(BaseModel):
     players: List["PlayerSchema"]
 
     class Config:
-        from_attributes = True #принятие не только словарей но и других объектов с аттр
+        from_attributes = True
 
 
 class ClubSchemaUpdate(BaseModel):
