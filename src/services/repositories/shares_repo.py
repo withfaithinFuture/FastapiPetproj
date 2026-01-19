@@ -12,7 +12,7 @@ class UserSharesRepository:
         self.session = session
         
         
-    async def add_shares(self, user: User, shares: list[Share]):
+    async def add_shares(self, user: User, shares: list[Share]) -> User:
         self.session.add(user)
         self.session.add_all(shares)
         await self.session.flush()
@@ -27,13 +27,13 @@ class UserSharesRepository:
         return result.scalars().all()
 
 
-    async def get_user_by_id(self, upd_id: UUID):
+    async def get_user_by_id(self, upd_id: UUID) -> User | None:
         query = select(User).where(User.id == upd_id).with_for_update(skip_locked=True) #пропуск заблок id
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
 
-    async def get_share_by_id(self, upd_id: UUID):
+    async def get_share_by_id(self, upd_id: UUID) -> Share | None:
         query = select(Share).where(Share.id == upd_id).with_for_update(skip_locked=True)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
@@ -45,10 +45,12 @@ class UserSharesRepository:
         return upd_object
 
 
-    async def get_shares_or_user_by_id(self, obj_id: UUID):
-        user = await self.session.get(User, obj_id).with_for_update(skip_locked=True)
-        share = await self.session.get(Share, obj_id).with_for_update(skip_locked=True)
-        return user, share
+    async def get_shares_or_user_by_id(self, obj_id: UUID) -> tuple[User | None, Share | None]:
+        user_query = select(User).where(User.id == obj_id).with_for_update(skip_locked=True)
+        share_query = select(Share).where(Share.id == obj_id).with_for_update(skip_locked=True)
+        user = await self.session.execute(user_query)
+        share = await self.session.execute(share_query)
+        return user.scalar_one_or_none(), share.scalar_one_or_none()
 
 
     async def delete_owner_or_share(self, delete_obj):

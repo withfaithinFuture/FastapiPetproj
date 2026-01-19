@@ -1,8 +1,8 @@
-"""BD UP 2026
+"""added email
 
-Revision ID: 4db0c8892605
+Revision ID: 9f85b21401f9
 Revises: 
-Create Date: 2026-01-03 17:10:41.943270
+Create Date: 2026-01-20 00:11:03.497616
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '4db0c8892605'
+revision: str = '9f85b21401f9'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -44,6 +44,7 @@ def upgrade() -> None:
     op.create_table('users',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('username', sa.String(), nullable=False),
+    sa.Column('email', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('clubs_and_players',

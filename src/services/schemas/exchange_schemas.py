@@ -1,8 +1,5 @@
-import datetime
-from typing import List
 from pydantic import Field, BaseModel
-from uuid import UUID
-from decimal import Decimal
+
 
 letters = r'^[A-Za-zА-Яа-яЁё0-9\s\-]+$'
 

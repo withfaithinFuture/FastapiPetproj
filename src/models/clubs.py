@@ -2,8 +2,8 @@ from typing import List
 import sqlalchemy as sa
 from uuid import UUID, uuid4
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from services.db.base_service import Base
-from src.models.clubsandplayers import joined_table
+from src.services.db.base_service import Base
+from src.models.clubs_players import joined_table
 
 
 class Club(Base):

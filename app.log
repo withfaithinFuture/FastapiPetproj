@@ -1,0 +1,32 @@
+02:00:13 - services.clubs       - INFO     - Добавление клуба с игроками
+02:00:13 - services.clubs       - INFO     - Создано игроков: 1
+02:00:13 - services.clubs       - INFO     - Клуб добавлен: name=ЦСКА
+19:05:14 - services.clubs       - INFO     - Запрос информации о клубах
+19:05:14 - services.clubs       - INFO     - Получено клубов: 5
+19:06:11 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+19:11:51 - services.clubs       - INFO     - Запрос информации о клубах
+19:11:51 - services.clubs       - INFO     - Получено клубов: 5
+19:12:17 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:50:44 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:51:48 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:53:03 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:53:03 - services.clubs       - INFO     - Найден клуб для удаления: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:56:00 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:56:00 - services.clubs       - INFO     - Найден игрок для удаления: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:56:00 - services.clubs       - INFO     - Игрок удален: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+21:01:55 - services.exchange    - INFO     - Запрос информации о биржах
+21:01:55 - services.exchange    - INFO     - Получено бирж: 1
+21:03:53 - services.exchange    - INFO     - Запрос информации о биржах
+21:03:53 - services.exchange    - INFO     - Получено бирж: 1
+21:42:44 - services.clubs       - INFO     - Запрос информации о клубах
+21:42:44 - services.clubs       - INFO     - Получено клубов: 5
+21:43:50 - services.clubs       - INFO     - Запрос информации о клубах
+21:43:50 - services.clubs       - INFO     - Получено клубов: 5
+23:48:09 - services.clubs       - INFO     - Запрос информации о клубах
+23:48:41 - services.clubs       - INFO     - Запрос информации о клубах
+00:11:22 - services.clubs       - INFO     - Запрос информации о клубах
+00:11:22 - services.clubs       - INFO     - Получено клубов: 0
+00:15:36 - services.shares      - INFO     - Добавление   пользователя с акциями
+00:15:36 - services.shares      - INFO     - Создано акций: 1
+00:15:36 - services.shares      - INFO     - Пользователь сохранен: username=besttrader, ID=aa4fcfae-a89f-425c-944e-abd3fd0a8d61
+01:00:10 - app.exceptions       - WARNING  - Invalid email domain: rikiheu@rambler.com

@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 from uuid import UUID, uuid4
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from services.db.base_service import Base
+from src.services.db.base_service import Base
 
 
 class Owner(Base):

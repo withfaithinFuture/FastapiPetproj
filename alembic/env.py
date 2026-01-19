@@ -1,9 +1,18 @@
 from logging.config import fileConfig
-
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 from alembic import context
+from src.services.db.base_service import Base
+from src.models.shares import Share
+from src.models.clubs import Club
+from src.models.exchange_owners import Owner
+from src.models.exchanges import Exchange
+from src.models.football_players import Player
+from src.models.users import User
+
+
+
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -18,8 +27,6 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from services.db.base_service import Base
-
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

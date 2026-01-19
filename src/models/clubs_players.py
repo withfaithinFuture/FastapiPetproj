@@ -1,5 +1,5 @@
 from sqlalchemy import ForeignKey, Column, Table
-from services.db.base_service import Base
+from src.services.db.base_service import Base
 
 
 joined_table = Table(
