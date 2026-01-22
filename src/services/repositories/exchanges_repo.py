@@ -14,7 +14,7 @@ class ExchangesOwnersRepository:
         self.session = session
 
 
-    async def add_exchange(self, owner: Owner, exchange: Exchange) -> Exchange:
+    async def create_exchange(self, owner: Owner, exchange: Exchange) -> Exchange:
         self.session.add(owner)
         self.session.add(exchange)
         await self.session.flush()

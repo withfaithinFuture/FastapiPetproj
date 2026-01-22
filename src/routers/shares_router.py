@@ -8,8 +8,8 @@ from services.services.shares_service import SharesService
 router = APIRouter(tags=['Actions with shares'])
 
 @router.post('/shares', status_code=status.HTTP_201_CREATED)
-async def add_shares(user_data: UserSchema, shsrv: SharesService = Depends(get_shares_service)):
-    return await shsrv.add_shares_service(user_data)
+async def create_shares(user_data: UserSchema, shsrv: SharesService = Depends(get_shares_service)):
+    return await shsrv.create_shares_service(user_data)
 
 
 @router.get('/shares', status_code=status.HTTP_201_CREATED)

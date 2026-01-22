@@ -18,14 +18,14 @@ class ExchangeService:
         self.exch_rep = exch_rep(self.session)
 
 
-    async def add_exchange_service(self, exchange_data: ExchangeSchema) -> ExchangeSchema:
+    async def create_exchange_service(self, exchange_data: ExchangeSchema) -> ExchangeSchema:
         logger_exchange.info("Добавление биржи с владельцем")
 
         owner_data_dict, exchange_data_dict = exchange_data.owner.model_dump(), exchange_data.model_dump(exclude='owner')
         owner, exchange = Owner(**owner_data_dict), Exchange(**exchange_data_dict)
         exchange.owner = owner
 
-        await self.exch_rep.add_exchange(owner, exchange)
+        await self.exch_rep.create_exchange(owner, exchange)
         logger_exchange.info(f"Биржа добавлена: ID={exchange.id}")
 
         return ExchangeSchema.model_validate(exchange)

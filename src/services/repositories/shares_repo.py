@@ -12,7 +12,7 @@ class UserSharesRepository:
         self.session = session
         
         
-    async def add_shares(self, user: User, shares: list[Share]) -> User:
+    async def create_shares(self, user: User, shares: list[Share]) -> User:
         self.session.add(user)
         self.session.add_all(shares)
         await self.session.flush()

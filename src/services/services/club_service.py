@@ -18,7 +18,7 @@ class ClubService:
         self.club_rep = club_rep(self.session)
 
 
-    async def add_club_service(self, club_data: ClubSchema) -> ClubSchema:
+    async def create_club_service(self, club_data: ClubSchema) -> ClubSchema:
         logger_club.info("Добавление клуба с игроками")
 
         club_data_dict = club_data.model_dump(exclude='players')
@@ -32,7 +32,7 @@ class ClubService:
 
         logger_club.info(f"Создано игроков: {len(players)}")
         new_club.players = players
-        await self.club_rep.add_club(new_club, players)
+        await self.club_rep.create_club(new_club, players)
         logger_club.info(f"Клуб добавлен: name={new_club.name}")
 
         return ClubSchema.model_validate(new_club)

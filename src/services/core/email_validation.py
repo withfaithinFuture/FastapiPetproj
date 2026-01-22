@@ -2,14 +2,6 @@ import re
 from src.services.core.exceptions import InvalidEmailFormat, InvalidEmailDomain
 
 
-def validate_email_format(email: str) -> bool:
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    if re.match(pattern, email):
-        return True
-    else:
-        raise InvalidEmailFormat(email)
-
-
 def validate_email_domain(email: str) -> bool:
     valid_domains = ['ru', 'su', 'рф', 'дети', 'москва', 'рус']
     domain = email.split('.')[-1]

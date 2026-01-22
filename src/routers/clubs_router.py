@@ -9,8 +9,8 @@ from src.app.dependencies import get_club_service
 router = APIRouter(tags=['Actions with football clubs'])
 
 @router.post('/clubs', status_code=status.HTTP_201_CREATED)
-async def add_club(club: ClubSchema, clsrv: ClubService = Depends(get_club_service)):
-    return await clsrv.add_club_service(club)
+async def create_club(club: ClubSchema, clsrv: ClubService = Depends(get_club_service)):
+    return await clsrv.create_club_service(club)
 
 
 @router.get('/clubs', status_code=status.HTTP_200_OK)

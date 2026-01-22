@@ -18,7 +18,7 @@ class SharesService:
 
 
 
-    async def add_shares_service(self, user_data: UserSchema) -> UserSchema:
+    async def create_shares_service(self, user_data: UserSchema) -> UserSchema:
         logger_shares.info("Добавление   пользователя с акциями")
         user_data_dict = user_data.model_dump(exclude='user_shares')
         new_user = User(**user_data_dict)
@@ -32,7 +32,7 @@ class SharesService:
         logger_shares.info(f"Создано акций: {len(shares)}")
         new_user.user_shares = shares
 
-        saved_user = await self.user_rep.add_shares(new_user, shares)
+        saved_user = await self.user_rep.create_shares(new_user, shares)
         logger_shares.info(f"Пользователь сохранен: username={saved_user.username}, ID={saved_user.id}")
 
         return UserSchema.model_validate(saved_user)

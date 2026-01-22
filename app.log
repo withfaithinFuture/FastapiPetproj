@@ -30,3 +30,9 @@
 00:15:36 - services.shares      - INFO     - Создано акций: 1
 00:15:36 - services.shares      - INFO     - Пользователь сохранен: username=besttrader, ID=aa4fcfae-a89f-425c-944e-abd3fd0a8d61
 01:00:10 - app.exceptions       - WARNING  - Invalid email domain: rikiheu@rambler.com
+20:42:03 - services.clubs       - INFO     - Добавление клуба с игроками
+20:42:03 - services.clubs       - INFO     - Создано игроков: 1
+20:42:03 - services.clubs       - INFO     - Клуб добавлен: name=x69dcGtC4LyaKS L1E8HRIaZ BngxpXSMEK4BaIR4PJaG
+20:42:09 - services.exchange    - INFO     - Добавление биржи с владельцем
+20:42:09 - services.exchange    - INFO     - Биржа добавлена: ID=ff15e508-76ce-420b-89d6-f9d77d72cf67
+20:42:16 - app.exceptions       - WARNING  - Invalid email domain: user@example.com
