@@ -79,22 +79,23 @@ class ExchangeService:
         return ExchangeOwnerSchema.model_validate(exist_owner)
 
 
-    async def delete_exchange_info_service(self, object_id: UUID) -> Exchange | Owner:
-        logger_exchange.info(f"Удаление объекта: ID={object_id}")
-        exchange, owner = await self.exch_rep.get_exchange_or_owner_by_id(object_id)
-
-        if exchange is not None:
-            logger_exchange.info(f"Найдена биржа для удаления: ID={object_id}")
-            await self.exch_rep.delete_exchange_or_owner(exchange)
-            logger_exchange.info(f"Биржа удалена: ID={object_id}")
-            return exchange
-
-        if owner is not None:
-            logger_exchange.info(f"Найден владелец для удаления: ID={object_id}")
-            await self.exch_rep.delete_exchange_or_owner(owner)
-            logger_exchange.info(f"Владелец удален: ID={object_id}")
-            return owner
-
+    async def delete_exchange_by_id(self, exchange_id: UUID):
+        exchange_by_id = await self.exch_rep.get_exchange_by_id(exchange_id)
+        if exchange_by_id is None:
+            logger_exchange.warning(f"Биржа не найдена для удаления: ID={exchange_id}")
+            raise NotFoundError(exchange_id, "Exchange")
         else:
-            logger_exchange.warning(f"Объект не найден: ID={object_id} (ни биржа, ни владелец)")
-            raise  NotFoundError(object_id, "exchange_or_owner")
+            logger_exchange.info(f"Найдена биржа для удаления: ID={exchange_id}")
+            await self.exch_rep.delete_exchange_or_owner(exchange_by_id)
+            logger_exchange.info(f"Биржа удалена: ID={exchange_id}")
+
+
+    async def delete_owner_by_id(self, owner_id: UUID):
+        owner_by_id = await self.exch_rep.get_owner_by_id(owner_id)
+        if owner_by_id is None:
+            logger_exchange.warning(f"Владелец не найден для удаления: ID={owner_id}")
+            raise NotFoundError(owner_id, "Owner")
+        else:
+            logger_exchange.info(f"Найден владелец для удаления: ID={owner_id}")
+            await self.exch_rep.delete_exchange_or_owner(owner_by_id)
+            logger_exchange.info(f"Владелец удален: ID={owner_id}")

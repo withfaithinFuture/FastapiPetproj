@@ -45,13 +45,5 @@ class UserSharesRepository:
         return upd_object
 
 
-    async def get_shares_or_user_by_id(self, obj_id: UUID) -> tuple[User | None, Share | None]:
-        user_query = select(User).where(User.id == obj_id).with_for_update(skip_locked=True)
-        share_query = select(Share).where(Share.id == obj_id).with_for_update(skip_locked=True)
-        user = await self.session.execute(user_query)
-        share = await self.session.execute(share_query)
-        return user.scalar_one_or_none(), share.scalar_one_or_none()
-
-
-    async def delete_owner_or_share(self, delete_obj):
+    async def delete_user_or_share(self, delete_obj):
         await self.session.delete(delete_obj)

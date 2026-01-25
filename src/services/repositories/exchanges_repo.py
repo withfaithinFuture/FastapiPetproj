@@ -47,12 +47,16 @@ class ExchangesOwnersRepository:
         return result.scalar_one_or_none()
 
 
-    async def get_exchange_or_owner_by_id(self, obj_id: UUID) -> tuple[Exchange | None, Owner | None]:
-        exchange_query = select(Exchange).where(Exchange.id == obj_id).with_for_update(skip_locked=True)
-        owner_query = select(Owner).where(Owner.id == obj_id).with_for_update(skip_locked=True)
+    async def get_exchange_by_id(self, exchange_id: UUID) -> Exchange | None:
+        exchange_query = select(Exchange).where(Exchange.id == exchange_id).with_for_update(skip_locked=True)
         exchange_by_id = await self.session.execute(exchange_query)
+        return exchange_by_id.scalar_one_or_none()
+
+
+    async def get_owner_by_id(self, owner_id: UUID) -> Owner | None:
+        owner_query = select(Owner).where(Owner.id == owner_id).with_for_update(skip_locked=True)
         owner_by_id = await self.session.execute(owner_query)
-        return exchange_by_id.scalar_one_or_none(), owner_by_id.scalar_one_or_none()
+        return owner_by_id.scalar_one_or_none()
 
 
     async def delete_exchange_or_owner(self, delete_obj):

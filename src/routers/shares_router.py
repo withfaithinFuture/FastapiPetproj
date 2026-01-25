@@ -27,6 +27,11 @@ async def update_user_shares(share_id: UUID, update_data: SharesSchemaUpdate, sh
     return  await shsrv.update_share_info_service(share_id, update_data)
 
 
-@router.delete('/shares/{object_id}}', status_code=status.HTTP_204_NO_CONTENT)
-async def delete_by_id(delete_id: UUID, shsrv: SharesService = Depends(get_shares_service)):
-    return await shsrv.delete_owner_or_share(delete_id)
+@router.delete('/shares/{share_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_share_by_id(share_id: UUID, shsrv: SharesService = Depends(get_shares_service)):
+    return await shsrv.delete_share_by_id(share_id)
+
+
+@router.delete('/users/{user_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_owner_by_id(user_id: UUID, shsrv: SharesService = Depends(get_shares_service)):
+    return await shsrv.delete_user_by_id(user_id)

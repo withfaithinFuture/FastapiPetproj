@@ -85,23 +85,29 @@ class SharesService:
         return SharesSchemaUpdate.model_validate(existing_share)
 
 
-    async def delete_owner_or_share(self, delete_id: UUID) -> User | Share:
-        logger_shares.info(f"Удаление объекта: ID={delete_id}")
+    async def delete_user_by_id(self, owner_id: UUID):
+        logger_shares.info(f"Удаление владельца акций: ID={owner_id}")
+        owner_by_id = await self.user_rep.get_user_by_id(owner_id)
 
-        existing_user, existing_share = await self.user_rep.get_shares_or_user_by_id(delete_id)
-
-        if existing_user is not None:
-            logger_shares.info(f"Найден пользователь для удаления: ID={delete_id}")
-            await self.user_rep.delete_owner_or_share(existing_user)
-            logger_shares.info(f"Пользователь удален: ID={delete_id}")
-            return existing_user
-
-        if existing_share is not None:
-            logger_shares.info(f"Найдена акция для удаления: ID={delete_id}")
-            await self.user_rep.delete_owner_or_share(existing_share)
-            logger_shares.info(f"Акция удалена: ID={delete_id}")
-            return existing_share
+        if owner_by_id is None:
+            logger_shares.warning(f"Владелец акций не найден: ID={owner_id}")
+            raise NotFoundError(owner_id, 'Owner')
 
         else:
-            logger_shares.warning(f"Объект не найден: ID={delete_id}")
-            raise NotFoundError(delete_id, 'user_or_share')
+            logger_shares.info(f"Найден владелец акций для удаления: ID={owner_id}")
+            await self.user_rep.delete_user_or_share(owner_by_id)
+            logger_shares.info(f"Владелец акций удален: ID={owner_id}")
+
+
+    async def delete_share_by_id(self, share_id: UUID):
+        logger_shares.info(f"Удаление акции: ID={share_id}")
+        share_by_id = await self.user_rep.get_share_by_id(share_id)
+
+        if share_by_id is None:
+            logger_shares.warning(f"Акция не найдена: ID={share_id}")
+            raise NotFoundError(share_id, 'Share')
+
+        else:
+            logger_shares.info(f"Найдена акция для удаления: ID={share_id}")
+            await self.user_rep.delete_user_or_share(share_by_id)
+            logger_shares.info(f"Акция удалена: ID={share_id}")

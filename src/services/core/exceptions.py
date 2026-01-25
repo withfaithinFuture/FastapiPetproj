@@ -1,3 +1,4 @@
+import datetime as dt
 import logging
 from uuid import UUID
 from fastapi import HTTPException, status
@@ -12,29 +13,42 @@ class NotFoundError(HTTPException):
 
         logger.warning(f'{self.object_type} not found: id={self.object_id}')
 
-        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail={{
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail={
             "error": f"{self.object_type}_not_found",
             "message": f"{self.object_type} with id={self.object_id} was not found",
-            f"{self.object_type}_id": str(self.object_id)}})
+            f"{self.object_type}_id": str(self.object_id)})
 
 
-class InvalidEmailFormat(HTTPException):
-    def __init__(self, email: str):
-        self.email = email
+class AgeMinorError(HTTPException):
+    def __init__(self, date: dt.date, object_type: str = "user"):
+        self.date = date
+        self.object_type = object_type
 
-        logger.warning(f'Invalid email format: {self.email}')
+        logger.warning(f'{self.object_type} is underage: birth_date={date}')
 
-        super().__init__(status_code=status.HTTP_400_BAD_REQUEST , detail={
-            "error": "email_invalid_format",
-            "message": f"{self.email} has invalid format. Correct example: example@ya.ru"})
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": f"{self.object_type}_underage",
+                "message": f"{self.object_type} is under 18 years old",
+                f"{self.object_type}_birth_date": date.isoformat()
+            }
+        )
 
 
-class InvalidEmailDomain(HTTPException):
-    def __init__(self, email: str):
-        self.email = email
+class FutureDateError(HTTPException):
+    def __init__(self, date: dt.date, object_type: str = "user"):
+        self.date = date
+        self.object_type = object_type
 
-        logger.warning(f'Invalid email domain: {self.email}')
+        logger.warning(f'{self.object_type} has future date: {date}')
 
-        super().__init__(status_code=status.HTTP_400_BAD_REQUEST , detail={
-            "error": "email_invalid_domain",
-            "message": f"{self.email} has invalid domain. Correct domains are ('ru', 'su', 'рф', 'дети', 'москва', 'рус')"})
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": f"{self.object_type}_future_date",
+                "message": f"{self.object_type} date cannot be in the future",
+                f"{self.object_type}_date": date.isoformat(),
+                "current_date": dt.date.today().isoformat()
+            }
+        )

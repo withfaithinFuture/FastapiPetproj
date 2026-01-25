@@ -86,23 +86,30 @@ class ClubService:
         return PlayerSchema.model_validate(existing_player)
 
 
-    async def delete_club_or_player(self, delete_id: UUID) -> Club | Player:
-        logger_club.info(f"Удаление объекта: ID={delete_id}")
 
-        club_by_id, player_by_id = await self.club_rep.get_club_or_player_by_id(delete_id)
+    async def delete_club_by_id(self, club_id: UUID):
+        logger_club.info(f"Удаление клуба: ID={club_id}")
+        club_by_id = await self.club_rep.get_club_with_players(club_id)
 
-        if club_by_id is not None:
-            logger_club.info(f"Найден клуб для удаления: ID={delete_id}")
-            await self.club_rep.delete_club_or_player(club_by_id)
-            logger_club.info(f"Клуб удален: ID={delete_id}")
-            return club_by_id
-
-        if player_by_id is not None:
-            logger_club.info(f"Найден игрок для удаления: ID={delete_id}")
-            await self.club_rep.delete_club_or_player(player_by_id)
-            logger_club.info(f"Игрок удален: ID={delete_id}")
-            return player_by_id
+        if club_by_id is None:
+            logger_club.warning(f"Клуб не найден: ID={club_id}")
+            raise NotFoundError(club_id, 'Club')
 
         else:
-            logger_club.warning(f"Объект не найден: ID={delete_id} (ни клуб, ни игрок)")
-            raise NotFoundError(delete_id, "club_or_player")
+            logger_club.info(f"Найден клуб для удаления: ID={club_id}")
+            await self.club_rep.delete_club_or_player(club_by_id)
+            logger_club.info(f"Клуб удален: ID={club_id}")
+
+
+    async def delete_player_by_id(self, player_id: UUID):
+        logger_club.info(f"Удаление футболиста: ID={player_id}")
+        player_by_id = await self.club_rep.get_player_by_id(player_id)
+
+        if player_by_id is None:
+            logger_club.warning(f"Футболист не найден: ID={player_id}")
+            raise NotFoundError(player_id, 'Player')
+
+        else:
+            logger_club.info(f"Найден игрок для удаления: ID={player_id}")
+            await self.club_rep.delete_club_or_player(player_by_id)
+            logger_club.info(f"Игрок удален: ID={player_id}")
