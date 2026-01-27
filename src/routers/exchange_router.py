@@ -1,7 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
-from src.services.schemas.exchange_schemas import ExchangeSchema, ExchangeUpdateSchema, \
-    ExchangeOwnerUpdateSchema
+from src.services.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema
+from src.services.schemas.exchange_schemas import ExchangeSchema, ExchangeUpdateSchema
 from src.app.dependencies import get_exch_service
 from services.services.exchange_service import ExchangeService
 

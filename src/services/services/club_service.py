@@ -1,10 +1,11 @@
 import logging
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.services.schemas.player_schemas import PlayerSchemaUpdate
 from src.services.core.exceptions import NotFoundError
 from src.models.football_players import Player
 from src.models.clubs import Club
-from src.services.schemas.club_schemas import ClubSchema, ClubSchemaUpdate, PlayerSchemaUpdate, PlayerSchema
+from src.services.schemas.club_schemas import ClubSchema, ClubSchemaUpdate, PlayerSchema
 from src.services.repositories.clubs_repo import ClubFootballersRepository as club_rep
 
 
@@ -95,10 +96,9 @@ class ClubService:
             logger_club.warning(f"Клуб не найден: ID={club_id}")
             raise NotFoundError(club_id, 'Club')
 
-        else:
-            logger_club.info(f"Найден клуб для удаления: ID={club_id}")
-            await self.club_rep.delete_club_or_player(club_by_id)
-            logger_club.info(f"Клуб удален: ID={club_id}")
+        logger_club.info(f"Найден клуб для удаления: ID={club_id}")
+        await self.club_rep.delete_club_or_player(club_by_id)
+        logger_club.info(f"Клуб удален: ID={club_id}")
 
 
     async def delete_player_by_id(self, player_id: UUID):
@@ -109,7 +109,6 @@ class ClubService:
             logger_club.warning(f"Футболист не найден: ID={player_id}")
             raise NotFoundError(player_id, 'Player')
 
-        else:
-            logger_club.info(f"Найден игрок для удаления: ID={player_id}")
-            await self.club_rep.delete_club_or_player(player_by_id)
-            logger_club.info(f"Игрок удален: ID={player_id}")
+        logger_club.info(f"Найден игрок для удаления: ID={player_id}")
+        await self.club_rep.delete_club_or_player(player_by_id)
+        logger_club.info(f"Игрок удален: ID={player_id}")

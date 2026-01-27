@@ -1,6 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
-from src.services.schemas.club_schemas import ClubSchemaUpdate, PlayerSchemaUpdate
+from src.services.schemas.player_schemas import PlayerSchemaUpdate
+from src.services.schemas.club_schemas import ClubSchemaUpdate
 from src.services.schemas.club_schemas import ClubSchema
 from services.services.club_service import ClubService
 from src.app.dependencies import get_club_service

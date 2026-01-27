@@ -1,11 +1,12 @@
 import logging
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.services.schemas.shares_users_schemas import UserSchema, UserSchemaUpdate
 from src.services.core.exceptions import NotFoundError
 from src.models.shares import Share
 from src.models.users import User
 from src.services.repositories.shares_repo import UserSharesRepository as user_rep
-from src.services.schemas.shares_schemas import UserSchema, UserSchemaUpdate, SharesSchemaUpdate
+from src.services.schemas.shares_schemas import SharesSchemaUpdate
 
 
 logger_shares = logging.getLogger("services.shares")
@@ -93,10 +94,9 @@ class SharesService:
             logger_shares.warning(f"Владелец акций не найден: ID={owner_id}")
             raise NotFoundError(owner_id, 'Owner')
 
-        else:
-            logger_shares.info(f"Найден владелец акций для удаления: ID={owner_id}")
-            await self.user_rep.delete_user_or_share(owner_by_id)
-            logger_shares.info(f"Владелец акций удален: ID={owner_id}")
+        logger_shares.info(f"Найден владелец акций для удаления: ID={owner_id}")
+        await self.user_rep.delete_user_or_share(owner_by_id)
+        logger_shares.info(f"Владелец акций удален: ID={owner_id}")
 
 
     async def delete_share_by_id(self, share_id: UUID):
@@ -107,7 +107,6 @@ class SharesService:
             logger_shares.warning(f"Акция не найдена: ID={share_id}")
             raise NotFoundError(share_id, 'Share')
 
-        else:
-            logger_shares.info(f"Найдена акция для удаления: ID={share_id}")
-            await self.user_rep.delete_user_or_share(share_by_id)
-            logger_shares.info(f"Акция удалена: ID={share_id}")
+        logger_shares.info(f"Найдена акция для удаления: ID={share_id}")
+        await self.user_rep.delete_user_or_share(share_by_id)
+        logger_shares.info(f"Акция удалена: ID={share_id}")
