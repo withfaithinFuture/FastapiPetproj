@@ -1,0 +1,25 @@
+[project]
+name = "petproj"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Your Name",email = "you@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic (>=1.17.2,<2.0.0)",
+    "pydantic (>=2.12.5,<3.0.0)",
+    "pydantic-settings (>=2.12.0,<3.0.0)",
+    "sqlalchemy (>=2.0.45,<3.0.0)",
+    "psycopg2 (>=2.9.9,<2.9.12)",
+    "asyncpg (>=0.31.0,<0.32.0)",
+    "ujson (>=5.11.0,<6.0.0)",
+    "fastapi (>=0.124.4,<0.125.0)",
+    "uvicorn (>=0.38.0,<0.39.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

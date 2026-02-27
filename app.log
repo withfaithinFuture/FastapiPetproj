@@ -1,0 +1,97 @@
+02:00:13 - services.clubs       - INFO     - Добавление клуба с игроками
+02:00:13 - services.clubs       - INFO     - Создано игроков: 1
+02:00:13 - services.clubs       - INFO     - Клуб добавлен: name=ЦСКА
+19:05:14 - services.clubs       - INFO     - Запрос информации о клубах
+19:05:14 - services.clubs       - INFO     - Получено клубов: 5
+19:06:11 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+19:11:51 - services.clubs       - INFO     - Запрос информации о клубах
+19:11:51 - services.clubs       - INFO     - Получено клубов: 5
+19:12:17 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:50:44 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:51:48 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:53:03 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:53:03 - services.clubs       - INFO     - Найден клуб для удаления: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:56:00 - services.clubs       - INFO     - Удаление объекта: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:56:00 - services.clubs       - INFO     - Найден игрок для удаления: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+20:56:00 - services.clubs       - INFO     - Игрок удален: ID=97985fb3-c178-4732-b7a7-c7f2d20d3e9b
+21:01:55 - services.exchange    - INFO     - Запрос информации о биржах
+21:01:55 - services.exchange    - INFO     - Получено бирж: 1
+21:03:53 - services.exchange    - INFO     - Запрос информации о биржах
+21:03:53 - services.exchange    - INFO     - Получено бирж: 1
+21:42:44 - services.clubs       - INFO     - Запрос информации о клубах
+21:42:44 - services.clubs       - INFO     - Получено клубов: 5
+21:43:50 - services.clubs       - INFO     - Запрос информации о клубах
+21:43:50 - services.clubs       - INFO     - Получено клубов: 5
+23:48:09 - services.clubs       - INFO     - Запрос информации о клубах
+23:48:41 - services.clubs       - INFO     - Запрос информации о клубах
+00:11:22 - services.clubs       - INFO     - Запрос информации о клубах
+00:11:22 - services.clubs       - INFO     - Получено клубов: 0
+00:15:36 - services.shares      - INFO     - Добавление   пользователя с акциями
+00:15:36 - services.shares      - INFO     - Создано акций: 1
+00:15:36 - services.shares      - INFO     - Пользователь сохранен: username=besttrader, ID=aa4fcfae-a89f-425c-944e-abd3fd0a8d61
+01:00:10 - app.exceptions       - WARNING  - Invalid email domain: rikiheu@rambler.com
+20:42:03 - services.clubs       - INFO     - Добавление клуба с игроками
+20:42:03 - services.clubs       - INFO     - Создано игроков: 1
+20:42:03 - services.clubs       - INFO     - Клуб добавлен: name=x69dcGtC4LyaKS L1E8HRIaZ BngxpXSMEK4BaIR4PJaG
+20:42:09 - services.exchange    - INFO     - Добавление биржи с владельцем
+20:42:09 - services.exchange    - INFO     - Биржа добавлена: ID=ff15e508-76ce-420b-89d6-f9d77d72cf67
+20:42:16 - app.exceptions       - WARNING  - Invalid email domain: user@example.com
+23:41:09 - services.clubs       - INFO     - Удаление клуба: ID=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:41:09 - services.clubs       - WARNING  - Клуб не найден: ID=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:41:09 - app.exceptions       - WARNING  - Club not found: id=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:42:28 - services.clubs       - INFO     - Удаление клуба: ID=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:42:29 - services.clubs       - WARNING  - Клуб не найден: ID=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:42:29 - app.exceptions       - WARNING  - Club not found: id=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:42:49 - services.clubs       - INFO     - Удаление клуба: ID=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:42:49 - services.clubs       - WARNING  - Клуб не найден: ID=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:42:49 - app.exceptions       - WARNING  - Club not found: id=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:46:04 - services.clubs       - INFO     - Удаление футболиста: ID=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:46:04 - services.clubs       - INFO     - Найден игрок для удаления: ID=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:46:04 - services.clubs       - INFO     - Игрок удален: ID=f0fcd396-7258-4bd0-9955-60ad5133bdd5
+23:59:56 - services.shares      - INFO     - Удаление акции: ID=27520117-7cf6-47ca-b7c7-58fbde25875f
+23:59:56 - services.shares      - WARNING  - Акция не найдена: ID=27520117-7cf6-47ca-b7c7-58fbde25875f
+23:59:56 - app.exceptions       - WARNING  - Share not found: id=27520117-7cf6-47ca-b7c7-58fbde25875f
+00:00:00 - services.shares      - INFO     - Удаление акции: ID=27520117-7cf6-47ca-b7c7-58fbde25876f
+00:00:00 - services.shares      - WARNING  - Акция не найдена: ID=27520117-7cf6-47ca-b7c7-58fbde25876f
+00:00:00 - app.exceptions       - WARNING  - Share not found: id=27520117-7cf6-47ca-b7c7-58fbde25876f
+00:00:03 - services.shares      - INFO     - Удаление акции: ID=27520117-7cf6-47ca-b7c7-58fbde25876f
+00:00:03 - services.shares      - WARNING  - Акция не найдена: ID=27520117-7cf6-47ca-b7c7-58fbde25876f
+00:00:03 - app.exceptions       - WARNING  - Share not found: id=27520117-7cf6-47ca-b7c7-58fbde25876f
+00:00:16 - services.shares      - INFO     - Удаление акции: ID=27520117-7cf6-47ca-b8c7-58fbde25876f
+00:00:16 - services.shares      - INFO     - Найдена акция для удаления: ID=27520117-7cf6-47ca-b8c7-58fbde25876f
+00:00:16 - services.shares      - INFO     - Акция удалена: ID=27520117-7cf6-47ca-b8c7-58fbde25876f
+00:00:34 - services.shares      - INFO     - Удаление владельца акций: ID=aa4fcfae-a89f-425c-944e-abd3fd0a8d62
+00:00:34 - services.shares      - WARNING  - Владелец акций не найден: ID=aa4fcfae-a89f-425c-944e-abd3fd0a8d62
+00:00:34 - app.exceptions       - WARNING  - Owner not found: id=aa4fcfae-a89f-425c-944e-abd3fd0a8d62
+00:00:37 - services.shares      - INFO     - Удаление владельца акций: ID=aa4fcfae-a89f-425c-944e-abd3fd0a8d61
+00:00:37 - services.shares      - INFO     - Найден владелец акций для удаления: ID=aa4fcfae-a89f-425c-944e-abd3fd0a8d61
+00:00:37 - services.shares      - INFO     - Владелец акций удален: ID=aa4fcfae-a89f-425c-944e-abd3fd0a8d61
+00:22:21 - services.exchange    - INFO     - Найдена биржа для удаления: ID=ff15e508-76ce-420b-89d6-f9d77d72cf66
+00:23:02 - services.exchange    - WARNING  - Биржа не найдена для удаления: ID=ff15e508-76ce-320b-89d6-f9d77d72cf67
+00:23:02 - app.exceptions       - WARNING  - exchange not found: id=ff15e508-76ce-320b-89d6-f9d77d72cf67
+00:23:17 - services.exchange    - INFO     - Найдена биржа для удаления: ID=ff15e508-76ce-420b-89d6-f9d77d72cf67
+00:23:17 - services.exchange    - INFO     - Биржа удалена: ID=ff15e508-76ce-420b-89d6-f9d77d72cf67
+00:23:37 - services.exchange    - WARNING  - Владелец не найден для удаления: ID=904f9ff3-2c78-444b-899c-fea116a8e1b4
+00:23:37 - app.exceptions       - WARNING  - owner not found: id=904f9ff3-2c78-444b-899c-fea116a8e1b4
+00:23:43 - services.exchange    - INFO     - Найден владелец для удаления: ID=904f9ff3-2c78-444b-899c-fea116a8e1b7
+00:23:43 - services.exchange    - INFO     - Владелец удален: ID=904f9ff3-2c78-444b-899c-fea116a8e1b7
+00:55:35 - app.exceptions       - WARNING  - user has future date: 3000-02-01
+00:55:48 - app.exceptions       - WARNING  - user is underage: birth_date=2015-02-01
+00:55:54 - services.shares      - INFO     - Добавление   пользователя с акциями
+00:55:54 - services.shares      - INFO     - Создано акций: 1
+00:58:31 - services.shares      - INFO     - Добавление   пользователя с акциями
+00:58:31 - services.shares      - INFO     - Создано акций: 1
+01:01:09 - services.shares      - INFO     - Добавление   пользователя с акциями
+01:01:09 - services.shares      - INFO     - Создано акций: 1
+01:01:09 - services.shares      - INFO     - Пользователь сохранен: username=p9el8C27oHY8TxMEWlp5Vj oaqRnWloV, ID=88b1b52b-f10c-41e5-a4cb-328182150689
+01:03:06 - services.shares      - INFO     - Добавление   пользователя с акциями
+01:03:06 - services.shares      - INFO     - Создано акций: 1
+01:03:06 - services.shares      - INFO     - Пользователь сохранен: username=Jnx 2RhoS1Wm2BIOwVh7C8OBFvPw8ikNTcZsHc6csMsgzujufeiWhTI98cEb6jE3llyyIubuok, ID=e74c39f2-0be9-49a6-940a-af60112aeaa5
+01:05:53 - services.shares      - INFO     - Добавление   пользователя с акциями
+01:05:53 - services.shares      - INFO     - Создано акций: 1
+01:05:53 - services.shares      - INFO     - Пользователь сохранен: username=GcNM-XPs6BEVaNj2 hpb7Srw4qfSmgmpyY-ubt8IGtetDfMXmpn jEUonAhKGyIATx9K3EiKh0PQw, ID=f413d513-2f84-4a81-98aa-336210390537
+01:06:51 - services.shares      - INFO     - Добавление   пользователя с акциями
+01:06:51 - services.shares      - INFO     - Создано акций: 1
+01:09:38 - services.shares      - INFO     - Добавление   пользователя с акциями
+01:09:38 - services.shares      - INFO     - Создано акций: 1
+01:09:38 - services.shares      - INFO     - Пользователь сохранен: username=MjrdZuk 9er84dc2XdS5Q0Oiy-eg7-5ON8Kba5CECulWJRB6CNeAaYCE 2TdZK3XjPJS96s buPzFBrH2-unXzfyirA10T2B9, ID=8c5d3b0a-964b-4a87-9f72-3ab1063e6daa
