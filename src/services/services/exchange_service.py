@@ -1,13 +1,16 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+import json
 import logging
 from uuid import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
+from redis.asyncio import Redis
 
+from src.services.services.second_client_service import SecondClientService
 from src.services.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema
-from src.services.core.exceptions import NotFoundError
+from src.services.core.exceptions import NotFoundError, NotFoundByNameError
 from src.models.exchange_owners import Owner
 from src.models.exchanges import Exchange
-from src.services.schemas.exchange_schemas import ExchangeSchema, ExchangeUpdateSchema, \
-    ExchangeOwnerSchema
+from src.services.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeUpdateSchema, \
+    ExchangeOwnerSchema, ExchangeResponseSchema
 from src.services.repositories.exchanges_repo import ExchangesOwnersRepository as exch_rep
 
 
@@ -15,33 +18,76 @@ logger_exchange = logging.getLogger("services.exchange")
 
 class ExchangeService:
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, redis: Redis, second_service_client: SecondClientService, exchange_key: str):
         self.session = session
         self.exch_rep = exch_rep(self.session)
+        self.redis = redis
+        self.second_service_client = second_service_client
+        self.exchange_key = exchange_key
 
 
-    async def create_exchange_service(self, exchange_data: ExchangeSchema) -> ExchangeSchema:
+    async def create_exchange_service(self, exchange_data: ExchangeCreateSchema) -> ExchangeResponseSchema:
         logger_exchange.info("Добавление биржи с владельцем")
 
         owner_data_dict, exchange_data_dict = exchange_data.owner.model_dump(), exchange_data.model_dump(exclude='owner')
-        owner, exchange = Owner(**owner_data_dict), Exchange(**exchange_data_dict)
+        logger_exchange.info("Получение доп. данных со 2 сервиса")
+        additional_exchange_data = await self.second_service_client.get_additional_info(exchange_name=exchange_data_dict['exchange_name'])
+        full_exchange_data_dict = exchange_data_dict | additional_exchange_data.model_dump()
+        owner, exchange = Owner(**owner_data_dict), Exchange(**full_exchange_data_dict)
         exchange.owner = owner
 
         await self.exch_rep.create_exchange(owner, exchange)
+        await self.redis.delete(self.exchange_key)
         logger_exchange.info(f"Биржа добавлена: ID={exchange.id}")
 
-        return ExchangeSchema.model_validate(exchange)
+        return ExchangeResponseSchema.model_validate(exchange)
 
 
-    async def get_exchanges_info_service(self) -> list[ExchangeSchema]:
+    async def get_exchanges_info_service(self) -> list[ExchangeResponseSchema]:
         logger_exchange.info("Запрос информации о биржах")
-        result_models = await self.exch_rep.get_exchanges_info()
-        exchanges_schemas = [ExchangeSchema.model_validate(exchange) for exchange in result_models]
-        logger_exchange.info(f"Получено бирж: {len(exchanges_schemas)}")
-        return exchanges_schemas
+
+        cached_data = await self.redis.get(self.exchange_key)
+        if cached_data:
+            logger_exchange.info("Данные бирж получены из Redis")
+            exch_data = json.loads(cached_data)
+            return [ExchangeResponseSchema.model_validate(exch) for exch in exch_data]
+
+        else:
+            result_models = await self.exch_rep.get_exchanges_info()
+            exchanges_schemas = [ExchangeResponseSchema.model_validate(exchange) for exchange in result_models]
+            exch_data = [schema.model_dump() for schema in exchanges_schemas]
+            json_data = json.dumps(exch_data, default=str)
+            await self.redis.set(self.exchange_key, json_data, ex=3600)
+            logger_exchange.info(f"Получено бирж: {len(exchanges_schemas)}")
+            return exchanges_schemas
 
 
-    async def update_exchange_info_service(self, exchange_id: UUID, update_info: ExchangeUpdateSchema) -> ExchangeSchema:
+    async def get_exchange_by_name(self, exchange_name: str) -> ExchangeResponseSchema:
+        logger_exchange.info("Получение биржи по ее названию")
+        exchange_key = f"exchange:{exchange_name}"
+
+        cached_data = await self.redis.get(exchange_key)
+        if cached_data:
+            logger_exchange.info("Данные биржи получены из Redis")
+            old_data_dict = json.loads(cached_data)
+
+        else:
+            result_model = await self.exch_rep.get_exchange_by_name(exchange_name=exchange_name)
+            if result_model is None:
+                logger_exchange.warning(f"Биржа не найдена: {exchange_name}")
+                raise NotFoundByNameError(exchange_name, 'Exchange')
+            old_data_dict = ExchangeResponseSchema.model_validate(result_model).model_dump()
+            json_data = json.dumps(old_data_dict, default=str)
+            await self.redis.set(exchange_key, json_data, ex=3600)
+
+        fresh_additional_data = await self.second_service_client.get_additional_info(exchange_name=exchange_name)
+        new_exchange_model = old_data_dict | fresh_additional_data.model_dump()
+        logger_exchange.info(f"Биржа найдена: name={exchange_name}")
+
+        return ExchangeResponseSchema(**new_exchange_model)
+
+
+    async def update_exchange_info_service(self, exchange_id: UUID, update_info: ExchangeUpdateSchema) -> ExchangeCreateSchema:
         logger_exchange.info(f"Обновление биржи: ID={exchange_id}")
 
         update_dict = update_info.model_dump(exclude_none=True)
@@ -56,9 +102,10 @@ class ExchangeService:
                 setattr(existing_exchange, key, value)
 
         await self.exch_rep.update_object(existing_exchange)
+        await self.redis.delete(self.exchange_key)
         logger_exchange.info(f"Биржа обновлена: ID={exchange_id}")
 
-        return ExchangeSchema.model_validate(existing_exchange)
+        return ExchangeCreateSchema.model_validate(existing_exchange)
 
 
     async def update_owner_info_service(self, owner_id: UUID, update_info: ExchangeOwnerUpdateSchema) -> ExchangeOwnerSchema:
@@ -76,6 +123,7 @@ class ExchangeService:
                 setattr(exist_owner, key, value)
 
         await self.exch_rep.update_object(exist_owner)
+        await self.redis.delete(self.exchange_key)
         logger_exchange.info(f"Владелец обновлен: ID={owner_id}")
 
         return ExchangeOwnerSchema.model_validate(exist_owner)
@@ -90,6 +138,7 @@ class ExchangeService:
 
         logger_exchange.info(f"Найдена биржа для удаления: ID={exchange_id}")
         await self.exch_rep.delete_exchange_or_owner(exchange_by_id)
+        await self.redis.delete(self.exchange_key)
         logger_exchange.info(f"Биржа удалена: ID={exchange_id}")
 
 
@@ -102,4 +151,5 @@ class ExchangeService:
 
         logger_exchange.info(f"Найден владелец для удаления: ID={owner_id}")
         await self.exch_rep.delete_exchange_or_owner(owner_by_id)
+        await self.redis.delete(self.exchange_key)
         logger_exchange.info(f"Владелец удален: ID={owner_id}")

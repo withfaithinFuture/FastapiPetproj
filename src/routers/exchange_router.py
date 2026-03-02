@@ -1,7 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from src.services.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema
-from src.services.schemas.exchange_schemas import ExchangeSchema, ExchangeUpdateSchema
+from src.services.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeUpdateSchema
 from src.app.dependencies import get_exch_service
 from services.services.exchange_service import ExchangeService
 
@@ -9,13 +9,18 @@ from services.services.exchange_service import ExchangeService
 router = APIRouter(tags=['Actions with the exchange'])
 
 @router.post('/exchange', status_code=status.HTTP_201_CREATED)
-async def create_exchange(exchange_data: ExchangeSchema, exchserv: ExchangeService = Depends(get_exch_service)):
+async def create_exchange(exchange_data: ExchangeCreateSchema, exchserv: ExchangeService = Depends(get_exch_service)):
     return await exchserv.create_exchange_service(exchange_data)
 
 
 @router.get('/exchange', status_code=status.HTTP_200_OK)
 async def get_exchanges(exchserv: ExchangeService = Depends(get_exch_service)):
     return await exchserv.get_exchanges_info_service()
+
+
+@router.get('/exchange/{exchange_name}', status_code=status.HTTP_200_OK)
+async def get_exchange_by_name(exchange_name: str, exchserv: ExchangeService = Depends(get_exch_service)):
+    return await exchserv.get_exchange_by_name(exchange_name)
 
 
 @router.patch('/exchange/{exchange_id}', status_code=status.HTTP_200_OK)

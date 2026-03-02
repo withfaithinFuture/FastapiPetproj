@@ -95,3 +95,89 @@
 01:09:38 - services.shares      - INFO     - Добавление   пользователя с акциями
 01:09:38 - services.shares      - INFO     - Создано акций: 1
 01:09:38 - services.shares      - INFO     - Пользователь сохранен: username=MjrdZuk 9er84dc2XdS5Q0Oiy-eg7-5ON8Kba5CECulWJRB6CNeAaYCE 2TdZK3XjPJS96s buPzFBrH2-unXzfyirA10T2B9, ID=8c5d3b0a-964b-4a87-9f72-3ab1063e6daa
+17:28:09 - services.clubs       - INFO     - Запрос информации о клубах
+17:36:04 - services.clubs       - INFO     - Запрос информации о клубах
+17:36:04 - services.clubs       - INFO     - Получено клубов: 0
+17:36:10 - services.clubs       - INFO     - Запрос информации о клубах
+17:36:10 - services.clubs       - INFO     - Данные о клубах получены из redis-кеша
+17:44:12 - services.exchange    - INFO     - Запрос информации о биржах
+17:44:12 - services.exchange    - INFO     - Получено бирж: 0
+17:44:14 - services.exchange    - INFO     - Запрос информации о биржах
+17:44:14 - services.exchange    - INFO     - Данные бирж получены из Redis
+17:44:19 - services.shares      - INFO     - Запрос информации об акциях
+17:46:37 - services.shares      - INFO     - Запрос информации об акциях
+17:46:37 - services.shares      - INFO     - Получено записей: 2
+17:46:41 - services.shares      - INFO     - Запрос информации об акциях
+17:46:41 - services.shares      - INFO     - Данные акций получены из Redis
+21:01:27 - services.clubs       - INFO     - Запрос информации о клубах
+21:01:28 - services.clubs       - INFO     - Получено клубов: 0
+21:02:48 - services.clubs       - INFO     - Добавление клуба с игроками
+21:02:48 - services.clubs       - INFO     - Создано игроков: 2
+21:02:48 - services.clubs       - INFO     - Клуб добавлен: name=FC Barcelona
+22:34:52 - services.exchange    - INFO     - Запрос информации о биржах
+22:34:52 - services.exchange    - INFO     - Получено бирж: 0
+22:35:33 - services.exchange    - INFO     - Добавление биржи с владельцем
+22:35:33 - services.exchange    - INFO     - Биржа добавлена: ID=9b8d8710-2ade-4a2d-b099-e0c5a6317d7e
+22:35:40 - services.exchange    - INFO     - Запрос информации о биржах
+22:35:40 - services.exchange    - INFO     - Получено бирж: 1
+22:35:43 - services.exchange    - INFO     - Запрос информации о биржах
+22:35:43 - services.exchange    - INFO     - Данные бирж получены из Redis
+21:00:01 - services.clubs       - INFO     - Запрос информации о клубах
+21:47:39 - services.exchange    - INFO     - Запрос информации о биржах
+21:56:40 - services.exchange    - INFO     - Запрос информации о биржах
+21:56:41 - services.exchange    - INFO     - Получено бирж: 1
+21:34:25 - services.exchange    - INFO     - Запрос информации о биржах
+21:34:25 - services.exchange    - INFO     - Получено бирж: 1
+21:36:17 - services.exchange    - INFO     - Добавление биржи с владельцем
+21:36:17 - services.exchange    - INFO     - Биржа добавлена: ID=aecc9e12-c88d-4ea3-9cd9-c3a14054fede
+22:35:29 - services.exchange    - INFO     - Запрос информации о биржах
+22:35:29 - services.exchange    - INFO     - Получено бирж: 2
+22:38:09 - services.exchange    - INFO     - Запрос информации о биржах
+22:38:09 - services.exchange    - INFO     - Данные бирж получены из Redis
+22:38:58 - services.exchange    - INFO     - Запрос информации о биржах
+22:38:58 - services.exchange    - INFO     - Данные бирж получены из Redis
+22:39:29 - services.exchange    - INFO     - Запрос информации о биржах
+22:39:29 - services.exchange    - INFO     - Данные бирж получены из Redis
+22:41:29 - services.exchange    - INFO     - Запрос информации о биржах
+22:41:29 - services.exchange    - INFO     - Данные бирж получены из Redis
+22:43:37 - services.exchange    - INFO     - Запрос информации о биржах
+22:43:37 - services.exchange    - INFO     - Данные бирж получены из Redis
+22:44:56 - services.exchange    - INFO     - Запрос информации о биржах
+22:44:56 - services.exchange    - INFO     - Данные бирж получены из Redis
+22:46:50 - services.exchange    - INFO     - Обновление биржи: ID=aecc9e12-c88d-4ea3-9cd9-c3a14054fede
+22:46:50 - services.exchange    - INFO     - Биржа обновлена: ID=aecc9e12-c88d-4ea3-9cd9-c3a14054fede
+22:46:58 - services.exchange    - INFO     - Запрос информации о биржах
+22:46:58 - services.exchange    - INFO     - Получено бирж: 2
+22:49:14 - services.exchange    - INFO     - Запрос информации о биржах
+22:49:14 - services.exchange    - INFO     - Данные бирж получены из Redis
+22:49:34 - services.exchange    - INFO     - Запрос информации о биржах
+22:49:34 - services.exchange    - INFO     - Данные бирж получены из Redis
+22:30:57 - services.exchange    - INFO     - Запрос информации о биржах
+22:30:57 - services.exchange    - INFO     - Получено бирж: 0
+22:31:31 - services.exchange    - INFO     - Добавление биржи с владельцем
+22:32:45 - services.exchange    - INFO     - Добавление биржи с владельцем
+22:36:40 - services.exchange    - INFO     - Добавление биржи с владельцем
+22:36:40 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001//exchange/Binance "HTTP/1.1 404 Not Found"
+22:58:36 - services.exchange    - INFO     - Добавление биржи с владельцем
+22:58:37 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/Binance "HTTP/1.1 200 OK"
+22:58:37 - services.exchange    - INFO     - Биржа добавлена: ID=7df3efb0-4cad-435b-a814-29f0753bb96a
+22:58:46 - services.exchange    - INFO     - Запрос информации о биржах
+22:58:46 - services.exchange    - INFO     - Получено бирж: 1
+22:58:52 - services.exchange    - INFO     - Запрос информации о биржах
+22:58:52 - services.exchange    - INFO     - Данные бирж получены из Redis
+22:58:53 - services.exchange    - INFO     - Запрос информации о биржах
+22:58:53 - services.exchange    - INFO     - Данные бирж получены из Redis
+22:58:55 - services.exchange    - INFO     - Запрос информации о биржах
+22:58:55 - services.exchange    - INFO     - Данные бирж получены из Redis
+23:00:24 - services.exchange    - INFO     - Запрос информации о биржах
+23:00:24 - services.exchange    - INFO     - Данные бирж получены из Redis
+23:00:48 - services.exchange    - INFO     - Запрос информации о биржах
+23:00:48 - services.exchange    - INFO     - Данные бирж получены из Redis
+23:04:28 - services.exchange    - INFO     - Запрос информации о биржах
+23:04:28 - services.exchange    - INFO     - Получено бирж: 1
+23:04:33 - services.exchange    - INFO     - Запрос информации о биржах
+23:04:33 - services.exchange    - INFO     - Данные бирж получены из Redis
+00:01:13 - services.exchange    - INFO     - Получение биржи по ее названию
+00:01:51 - services.exchange    - INFO     - Получение биржи по ее названию
+00:01:52 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/Binance "HTTP/1.1 200 OK"
+00:01:52 - services.exchange    - INFO     - Биржа найдена: name=Binance

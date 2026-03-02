@@ -1,5 +1,7 @@
+import json
 import logging
 from uuid import UUID
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.schemas.shares_users_schemas import UserSchema, UserSchemaUpdate
 from src.services.core.exceptions import NotFoundError
@@ -11,12 +13,14 @@ from src.services.schemas.shares_schemas import SharesSchemaUpdate
 
 logger_shares = logging.getLogger("services.shares")
 
+
 class SharesService:
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, redis: Redis, shares_key = "shares:all"):
         self.session = session
         self.user_rep = user_rep(self.session)
-
+        self.redis = redis
+        self.shares_key = shares_key
 
 
     async def create_shares_service(self, user_data: UserSchema) -> UserSchema:
@@ -34,16 +38,29 @@ class SharesService:
         new_user.user_shares = shares
 
         saved_user = await self.user_rep.create_shares(new_user, shares)
+        await self.redis.delete(self.shares_key)
         logger_shares.info(f"Пользователь сохранен: username={saved_user.username}, ID={saved_user.id}")
 
         return UserSchema.model_validate(saved_user)
 
 
-    async def get_shares_info_service(self) -> list[Share]:
+    async def get_shares_info_service(self) -> list[UserSchema]:
         logger_shares.info("Запрос информации об акциях")
-        result_scalar = await self.user_rep.get_shares_info()
-        logger_shares.info(f"Получено записей: {len(result_scalar)}")
-        return result_scalar
+
+        cashed_data = await self.redis.get(self.shares_key)
+        if cashed_data:
+            logger_shares.info("Данные акций получены из Redis")
+            user_data = json.loads(cashed_data)
+            return [UserSchema.model_validate(user) for user in user_data]
+
+        users_models = await self.user_rep.get_shares_info()
+        users_schemas = [UserSchema.model_validate(user) for user in users_models]
+
+        shares_data = [schema.model_dump() for schema in users_schemas]
+        json_data = json.dumps(shares_data, default=str)
+        await self.redis.set(self.shares_key, json_data, ex=3600)
+        logger_shares.info(f"Получено записей: {len(users_schemas)}")
+        return users_schemas
 
 
     async def update_user_shares_info_service(self, user_id: UUID, update_data: UserSchemaUpdate) -> UserSchemaUpdate:
@@ -61,6 +78,7 @@ class SharesService:
                 setattr(existing_user, key, value)
 
         await self.user_rep.update_object(existing_user)
+        await self.redis.delete(self.shares_key)
         logger_shares.info(f"Пользователь обновлен: ID={user_id}")
 
         return UserSchemaUpdate.model_validate(existing_user)
@@ -81,6 +99,7 @@ class SharesService:
                 setattr(existing_share, key, value)
 
         await self.user_rep.update_object(existing_share)
+        await self.redis.delete(self.shares_key)
         logger_shares.info(f"Акция обновлена: ID={share_id}")
 
         return SharesSchemaUpdate.model_validate(existing_share)
@@ -96,6 +115,7 @@ class SharesService:
 
         logger_shares.info(f"Найден владелец акций для удаления: ID={owner_id}")
         await self.user_rep.delete_user_or_share(owner_by_id)
+        await self.redis.delete(self.shares_key)
         logger_shares.info(f"Владелец акций удален: ID={owner_id}")
 
 
@@ -109,4 +129,5 @@ class SharesService:
 
         logger_shares.info(f"Найдена акция для удаления: ID={share_id}")
         await self.user_rep.delete_user_or_share(share_by_id)
+        await self.redis.delete(self.shares_key)
         logger_shares.info(f"Акция удалена: ID={share_id}")

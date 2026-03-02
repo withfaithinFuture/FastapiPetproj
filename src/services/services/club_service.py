@@ -1,5 +1,7 @@
+import json
 import logging
 from uuid import UUID
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.schemas.player_schemas import PlayerSchemaUpdate
 from src.services.core.exceptions import NotFoundError
@@ -14,9 +16,11 @@ logger_club = logging.getLogger('services.clubs')
 
 class ClubService:
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, redis: Redis, clubs_key = "clubs:all"):
         self.session = session
         self.club_rep = club_rep(self.session)
+        self.redis = redis
+        self.clubs_key = clubs_key
 
 
     async def create_club_service(self, club_data: ClubSchema) -> ClubSchema:
@@ -34,6 +38,7 @@ class ClubService:
         logger_club.info(f"Создано игроков: {len(players)}")
         new_club.players = players
         await self.club_rep.create_club(new_club, players)
+        await self.redis.delete(self.clubs_key)
         logger_club.info(f"Клуб добавлен: name={new_club.name}")
 
         return ClubSchema.model_validate(new_club)
@@ -41,8 +46,19 @@ class ClubService:
 
     async def get_clubs_info_service(self) -> list[ClubSchema]:
         logger_club.info("Запрос информации о клубах")
+
+        cached_data = await self.redis.get(self.clubs_key)
+        if cached_data:
+            logger_club.info("Данные о клубах получены из redis-кеша")
+            clubs_data = json.loads(cached_data)
+            return [ClubSchema.model_validate(club) for club in clubs_data]
+
         clubs_models = await self.club_rep.get_clubs_info()
         clubs_schemas = [ClubSchema.model_validate(club) for club in clubs_models]
+        clubs_list = [club.model_dump() for club in clubs_schemas]
+        json_data = json.dumps(clubs_list)
+        await self.redis.set(self.clubs_key, json_data, ex=3600)
+
         logger_club.info(f"Получено клубов: {len(clubs_schemas)}")
         return clubs_schemas
 
@@ -62,6 +78,7 @@ class ClubService:
                 setattr(existing_club, key, value)
 
         await self.club_rep.update_info(existing_club)
+        await self.redis.delete(self.clubs_key)
         logger_club.info(f"Клуб обновлен: ID={club_id}")
 
         return ClubSchema.model_validate(existing_club)
@@ -82,6 +99,7 @@ class ClubService:
                 setattr(existing_player, key, value)
 
         await self.club_rep.update_info(existing_player)
+        await self.redis.delete(self.clubs_key)
         logger_club.info(f"Игрок обновлен: ID={player_id}")
 
         return PlayerSchema.model_validate(existing_player)
@@ -98,6 +116,7 @@ class ClubService:
 
         logger_club.info(f"Найден клуб для удаления: ID={club_id}")
         await self.club_rep.delete_club_or_player(club_by_id)
+        await self.redis.delete(self.clubs_key)
         logger_club.info(f"Клуб удален: ID={club_id}")
 
 
@@ -111,4 +130,5 @@ class ClubService:
 
         logger_club.info(f"Найден игрок для удаления: ID={player_id}")
         await self.club_rep.delete_club_or_player(player_by_id)
+        await self.redis.delete(self.clubs_key)
         logger_club.info(f"Игрок удален: ID={player_id}")

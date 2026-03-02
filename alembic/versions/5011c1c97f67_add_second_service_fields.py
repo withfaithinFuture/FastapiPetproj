@@ -1,8 +1,8 @@
-"""new validation
+"""add_second_service_fields
 
-Revision ID: f568e543e854
+Revision ID: 5011c1c97f67
 Revises: 
-Create Date: 2026-01-26 00:52:15.521764
+Create Date: 2026-03-02 22:28:05.958931
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'f568e543e854'
+revision: str = '5011c1c97f67'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -45,6 +45,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('username', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
+    sa.Column('age', sa.Date(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('clubs_and_players',
@@ -59,6 +60,10 @@ def upgrade() -> None:
     sa.Column('exchange_name', sa.String(), nullable=False),
     sa.Column('work_in_Russia', sa.Boolean(), nullable=False),
     sa.Column('volume', sa.Float(), nullable=False),
+    sa.Column('trust_score', sa.Integer(), nullable=False),
+    sa.Column('btc_price', sa.Float(), nullable=False),
+    sa.Column('eth_price', sa.Float(), nullable=False),
+    sa.Column('sol_price', sa.Float(), nullable=False),
     sa.ForeignKeyConstraint(['owner_id'], ['exchange_owners.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('owner_id')
