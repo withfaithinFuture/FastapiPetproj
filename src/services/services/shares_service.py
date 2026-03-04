@@ -63,7 +63,7 @@ class SharesService:
         return users_schemas
 
 
-    async def update_user_shares_info_service(self, user_id: UUID, update_data: UserSchemaUpdate) -> UserSchemaUpdate:
+    async def update_user_shares_info_service(self, user_id: UUID, update_data: UserSchemaUpdate) -> UserSchemaUpdate | None:
         logger_shares.info(f"Обновление пользователя: ID={user_id}")
 
         update_data_dict = update_data.model_dump(exclude_none=True)
@@ -71,7 +71,7 @@ class SharesService:
 
         if existing_user is None:
             logger_shares.warning(f"Пользователь не найден: ID={user_id}")
-            raise NotFoundError(user_id, 'user')
+            return None
 
         for key, value in update_data_dict.items():
             if hasattr(existing_user, key):
@@ -84,7 +84,7 @@ class SharesService:
         return UserSchemaUpdate.model_validate(existing_user)
 
 
-    async def update_share_info_service(self, share_id: UUID, update_info: SharesSchemaUpdate) -> SharesSchemaUpdate:
+    async def update_share_info_service(self, share_id: UUID, update_info: SharesSchemaUpdate) -> SharesSchemaUpdate | None:
         logger_shares.info(f"Обновление акции: ID={share_id}")
 
         update_info_dict = update_info.model_dump(exclude_none=True)
@@ -92,7 +92,7 @@ class SharesService:
 
         if existing_share is None:
             logger_shares.warning(f"Акция не найдена: ID={share_id}")
-            raise NotFoundError(share_id, 'share')
+            return None
 
         for key, value in update_info_dict.items():
             if hasattr(existing_share, key):
@@ -111,12 +111,14 @@ class SharesService:
 
         if owner_by_id is None:
             logger_shares.warning(f"Владелец акций не найден: ID={owner_id}")
-            raise NotFoundError(owner_id, 'Owner')
+            return None
 
         logger_shares.info(f"Найден владелец акций для удаления: ID={owner_id}")
         await self.user_rep.delete_user_or_share(owner_by_id)
         await self.redis.delete(self.shares_key)
         logger_shares.info(f"Владелец акций удален: ID={owner_id}")
+
+        return True
 
 
     async def delete_share_by_id(self, share_id: UUID):
@@ -125,9 +127,12 @@ class SharesService:
 
         if share_by_id is None:
             logger_shares.warning(f"Акция не найдена: ID={share_id}")
-            raise NotFoundError(share_id, 'Share')
+            return None
 
         logger_shares.info(f"Найдена акция для удаления: ID={share_id}")
         await self.user_rep.delete_user_or_share(share_by_id)
         await self.redis.delete(self.shares_key)
         logger_shares.info(f"Акция удалена: ID={share_id}")
+
+        return True
+

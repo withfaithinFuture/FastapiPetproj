@@ -181,3 +181,103 @@
 00:01:51 - services.exchange    - INFO     - Получение биржи по ее названию
 00:01:52 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/Binance "HTTP/1.1 200 OK"
 00:01:52 - services.exchange    - INFO     - Биржа найдена: name=Binance
+00:06:38 - services.clubs       - INFO     - Добавление клуба с игроками
+00:06:38 - services.clubs       - INFO     - Создано игроков: 1
+00:06:38 - services.clubs       - INFO     - Клуб добавлен: name=Арсенал
+00:06:50 - services.clubs       - INFO     - Запрос информации о клубах
+00:09:12 - services.clubs       - INFO     - Запрос информации о клубах
+00:11:36 - services.clubs       - INFO     - Запрос информации о клубах
+00:11:36 - services.clubs       - INFO     - Получено клубов: 1
+00:12:11 - services.clubs       - INFO     - Обновление клуба: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:12:11 - services.clubs       - ERROR    - Не удалось обновить данные в Redis: 'dict' object has no attribute 'id'
+00:12:11 - services.clubs       - INFO     - Клуб обновлен: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:16:01 - services.clubs       - INFO     - Обновление клуба: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:16:01 - services.clubs       - INFO     - Клуб обновлен: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:16:13 - services.clubs       - INFO     - Запрос информации о клубах
+00:16:13 - services.clubs       - INFO     - Получено клубов: 1
+00:16:21 - services.clubs       - INFO     - Запрос информации о клубах
+00:16:21 - services.clubs       - INFO     - Данные о клубах получены из redis-кеша
+00:16:37 - services.clubs       - INFO     - Обновление клуба: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:16:37 - services.clubs       - ERROR    - Не удалось обновить данные в Redis: 'id'
+00:16:37 - services.clubs       - INFO     - Клуб обновлен: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:16:52 - services.clubs       - INFO     - Запрос информации о клубах
+00:16:52 - services.clubs       - INFO     - Получено клубов: 1
+00:20:11 - services.clubs       - INFO     - Обновление клуба: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:20:11 - services.clubs       - INFO     - Кэш клубов успешно обновлен
+00:20:11 - services.clubs       - INFO     - Клуб обновлен: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:20:25 - services.clubs       - INFO     - Обновление клуба: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:20:25 - services.clubs       - INFO     - Кэш клубов успешно обновлен
+00:20:25 - services.clubs       - INFO     - Клуб обновлен: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:20:37 - services.clubs       - INFO     - Запрос информации о клубах
+00:20:37 - services.clubs       - INFO     - Данные о клубах получены из redis-кеша
+00:20:44 - services.clubs       - INFO     - Обновление клуба: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:20:44 - services.clubs       - INFO     - Кэш клубов успешно обновлен
+00:20:44 - services.clubs       - INFO     - Клуб обновлен: ID=9f144739-ad53-47b2-91fa-7b3ec6bace50
+00:20:49 - services.clubs       - INFO     - Запрос информации о клубах
+00:20:49 - services.clubs       - INFO     - Данные о клубах получены из redis-кеша
+01:17:46 - services.exchange    - INFO     - Добавление биржи с владельцем
+01:17:46 - services.exchange    - INFO     - Получение доп. данных со 2 сервиса
+01:19:39 - services.exchange    - INFO     - Добавление биржи с владельцем
+01:19:39 - services.exchange    - INFO     - Получение доп. данных со 2 сервиса
+01:22:20 - services.exchange    - INFO     - Добавление биржи с владельцем
+01:22:20 - services.exchange    - INFO     - Получение доп. данных со 2 сервиса
+01:22:22 - httpx                - INFO     - HTTP Request: POST http://127.0.0.1:8001/exchange/OKX "HTTP/1.1 400 Bad Request"
+01:23:48 - services.exchange    - INFO     - Добавление биржи с владельцем
+01:23:48 - services.exchange    - INFO     - Получение доп. данных со 2 сервиса
+01:23:50 - httpx                - INFO     - HTTP Request: POST http://127.0.0.1:8001/exchange/Binance "HTTP/1.1 400 Bad Request"
+01:27:12 - services.exchange    - INFO     - Добавление биржи с владельцем
+01:27:12 - services.exchange    - INFO     - Получение доп. данных со 2 сервиса
+01:27:13 - httpx                - INFO     - HTTP Request: POST http://127.0.0.1:8001/exchange/okx "HTTP/1.1 400 Bad Request"
+01:33:08 - services.exchange    - INFO     - Добавление биржи с владельцем
+01:33:08 - services.exchange    - INFO     - Получение доп. данных со 2 сервиса
+01:33:10 - httpx                - INFO     - HTTP Request: POST http://127.0.0.1:8001/exchange/okx "HTTP/1.1 503 Service Unavailable"
+01:33:13 - httpx                - INFO     - HTTP Request: POST http://127.0.0.1:8001/exchange/okx "HTTP/1.1 503 Service Unavailable"
+01:35:07 - services.exchange    - INFO     - Добавление биржи с владельцем
+01:35:07 - services.exchange    - INFO     - Получение доп. данных со 2 сервиса
+01:35:09 - httpx                - INFO     - HTTP Request: POST http://127.0.0.1:8001/exchange/okx "HTTP/1.1 503 Service Unavailable"
+01:35:12 - httpx                - INFO     - HTTP Request: POST http://127.0.0.1:8001/exchange/okx "HTTP/1.1 503 Service Unavailable"
+01:36:36 - services.exchange    - INFO     - Добавление биржи с владельцем
+01:36:36 - services.exchange    - INFO     - Получение доп. данных со 2 сервиса
+01:36:37 - httpx                - INFO     - HTTP Request: POST http://127.0.0.1:8001/exchange/okx "HTTP/1.1 201 Created"
+01:36:37 - services.exchange    - INFO     - Биржа добавлена: ID=69910534-7e3f-4363-bd77-b2ac32967e83
+01:39:34 - services.exchange    - INFO     - Запрос информации о биржах
+01:39:34 - services.exchange    - INFO     - Получено бирж: 2
+01:39:52 - services.exchange    - INFO     - Запрос информации о биржах
+01:39:52 - services.exchange    - INFO     - Данные бирж получены из Redis
+01:40:44 - services.exchange    - INFO     - Запрос информации о биржах
+01:40:44 - services.exchange    - INFO     - Данные бирж получены из Redis
+01:41:45 - services.exchange    - INFO     - Запрос информации о биржах
+01:41:45 - services.exchange    - INFO     - Данные бирж получены из Redis
+01:41:48 - services.exchange    - INFO     - Запрос информации о биржах
+01:41:48 - services.exchange    - INFO     - Данные бирж получены из Redis
+01:42:23 - services.exchange    - INFO     - Получение биржи по ее названию
+01:42:23 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/okx "HTTP/1.1 200 OK"
+01:42:23 - services.exchange    - INFO     - Биржа найдена: name=okx
+01:43:03 - services.exchange    - INFO     - Получение биржи по ее названию
+01:43:03 - services.exchange    - INFO     - Данные биржи получены из Redis
+01:43:04 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/okx "HTTP/1.1 200 OK"
+01:43:04 - services.exchange    - INFO     - Биржа найдена: name=okx
+01:43:06 - services.exchange    - INFO     - Получение биржи по ее названию
+01:43:06 - services.exchange    - INFO     - Данные биржи получены из Redis
+01:43:06 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/okx "HTTP/1.1 200 OK"
+01:43:06 - services.exchange    - INFO     - Биржа найдена: name=okx
+01:43:32 - services.exchange    - INFO     - Получение биржи по ее названию
+01:43:32 - services.exchange    - INFO     - Данные биржи получены из Redis
+01:43:33 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/okx "HTTP/1.1 200 OK"
+01:43:33 - services.exchange    - INFO     - Биржа найдена: name=okx
+01:45:17 - services.exchange    - INFO     - Получение биржи по ее названию
+01:45:17 - services.exchange    - INFO     - Данные биржи получены из Redis
+01:45:17 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/okx "HTTP/1.1 200 OK"
+01:45:17 - services.exchange    - INFO     - Биржа найдена: name=okx
+01:45:17 - services.exchange    - INFO     - Получение биржи по ее названию
+01:45:17 - services.exchange    - INFO     - Данные биржи получены из Redis
+01:45:17 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/okx "HTTP/1.1 200 OK"
+01:45:17 - services.exchange    - INFO     - Биржа найдена: name=okx
+01:45:20 - services.exchange    - INFO     - Получение биржи по ее названию
+01:45:20 - services.exchange    - INFO     - Данные биржи получены из Redis
+01:45:20 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/okx "HTTP/1.1 200 OK"
+01:45:20 - services.exchange    - INFO     - Биржа найдена: name=okx
+01:45:20 - services.exchange    - INFO     - Получение биржи по ее названию
+01:45:20 - services.exchange    - INFO     - Данные биржи получены из Redis
+01:45:21 - httpx                - INFO     - HTTP Request: GET http://127.0.0.1:8001/exchange/okx "HTTP/1.1 200 OK"
+01:45:21 - services.exchange    - INFO     - Биржа найдена: name=okx

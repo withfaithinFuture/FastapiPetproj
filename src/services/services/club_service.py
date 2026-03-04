@@ -1,6 +1,8 @@
 import json
 import logging
 from uuid import UUID
+
+import ujson
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.schemas.player_schemas import PlayerSchemaUpdate
@@ -50,20 +52,20 @@ class ClubService:
         cached_data = await self.redis.get(self.clubs_key)
         if cached_data:
             logger_club.info("Данные о клубах получены из redis-кеша")
-            clubs_data = json.loads(cached_data)
+            clubs_data = ujson.loads(cached_data)
             return [ClubSchema.model_validate(club) for club in clubs_data]
 
         clubs_models = await self.club_rep.get_clubs_info()
         clubs_schemas = [ClubSchema.model_validate(club) for club in clubs_models]
-        clubs_list = [club.model_dump() for club in clubs_schemas]
-        json_data = json.dumps(clubs_list)
+        clubs_list = [club.model_dump(mode='json') for club in clubs_schemas]
+        json_data = ujson.dumps(clubs_list)
         await self.redis.set(self.clubs_key, json_data, ex=3600)
 
         logger_club.info(f"Получено клубов: {len(clubs_schemas)}")
         return clubs_schemas
 
 
-    async def update_clubs_info_service(self, club_id: UUID, update_sch: ClubSchemaUpdate) -> ClubSchema:
+    async def update_clubs_info_service(self, club_id: UUID, update_sch: ClubSchemaUpdate) -> ClubSchema | None:
         logger_club.info(f"Обновление клуба: ID={club_id}")
 
         update_sch_dict = update_sch.model_dump(exclude_none=True)
@@ -71,20 +73,37 @@ class ClubService:
 
         if existing_club is None:
             logger_club.warning(f"Клуб не найден: ID={club_id}")
-            raise NotFoundError(club_id, 'club')
+            return None
 
         for key, value in update_sch_dict.items():
             if hasattr(existing_club, key):
                 setattr(existing_club, key, value)
 
         await self.club_rep.update_info(existing_club)
-        await self.redis.delete(self.clubs_key)
+
+        try:
+            cached_data = await self.redis.get(self.clubs_key)
+            if cached_data:
+                clubs = ujson.loads(cached_data)
+
+                for i, club_data in enumerate(clubs):
+                    if club_data.get('id') == str(club_id):
+                        clubs[i].update(update_sch_dict)
+                        break
+
+                await self.redis.set(self.clubs_key, json.dumps(clubs, default=str), ex=3600)
+                logger_club.info(f"Кэш клубов успешно обновлен")
+
+        except Exception as e:
+            logger_club.error(f"Не удалось обновить данные в Redis: {e}")
+            await self.redis.delete(self.clubs_key)
+
         logger_club.info(f"Клуб обновлен: ID={club_id}")
 
         return ClubSchema.model_validate(existing_club)
 
 
-    async def update_players_info_service(self, player_id: UUID, update_player_sch: PlayerSchemaUpdate) -> PlayerSchema:
+    async def update_players_info_service(self, player_id: UUID, update_player_sch: PlayerSchemaUpdate) -> PlayerSchema | None:
         logger_club.info(f"Обновление игрока: ID={player_id}")
 
         update_sch_dict = update_player_sch.model_dump(exclude_none=True)
@@ -92,7 +111,7 @@ class ClubService:
 
         if existing_player is None:
             logger_club.warning(f"Игрок не найден: ID={player_id}")
-            raise NotFoundError(player_id, "player")
+            return None
 
         for key, value in update_sch_dict.items():
             if hasattr(existing_player, key):
@@ -112,12 +131,14 @@ class ClubService:
 
         if club_by_id is None:
             logger_club.warning(f"Клуб не найден: ID={club_id}")
-            raise NotFoundError(club_id, 'Club')
+            return None
 
         logger_club.info(f"Найден клуб для удаления: ID={club_id}")
         await self.club_rep.delete_club_or_player(club_by_id)
         await self.redis.delete(self.clubs_key)
         logger_club.info(f"Клуб удален: ID={club_id}")
+
+        return True
 
 
     async def delete_player_by_id(self, player_id: UUID):
@@ -126,9 +147,11 @@ class ClubService:
 
         if player_by_id is None:
             logger_club.warning(f"Футболист не найден: ID={player_id}")
-            raise NotFoundError(player_id, 'Player')
+            return None
 
         logger_club.info(f"Найден игрок для удаления: ID={player_id}")
         await self.club_rep.delete_club_or_player(player_by_id)
         await self.redis.delete(self.clubs_key)
         logger_club.info(f"Игрок удален: ID={player_id}")
+
+        return True

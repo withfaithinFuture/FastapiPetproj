@@ -19,7 +19,7 @@ def get_club_service(session: AsyncSession = Depends(get_session), redis: Redis 
 
 def get_exch_service(session: AsyncSession = Depends(get_session), redis: Redis = Depends(get_redis)) -> ExchangeService:
     second_service = SecondClientService()
-    return ExchangeService(session, redis, second_service)
+    return ExchangeService(session, redis, second_service, 'exchanges_list')
 
 
 def get_shares_service(session: AsyncSession = Depends(get_session), redis: Redis = Depends(get_redis)) -> SharesService:
