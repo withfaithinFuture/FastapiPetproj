@@ -1,12 +1,12 @@
 import json
 import logging
 from uuid import UUID
-
 import ujson
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
+from tenacity import retry, wait_exponential_jitter, stop_after_attempt, retry_if_exception
+from src.services.core.retry_handler import check_retry_error
 from src.services.schemas.player_schemas import PlayerSchemaUpdate
-from src.services.core.exceptions import NotFoundError
 from src.models.football_players import Player
 from src.models.clubs import Club
 from src.services.schemas.club_schemas import ClubSchema, ClubSchemaUpdate, PlayerSchema
@@ -59,10 +59,20 @@ class ClubService:
         clubs_schemas = [ClubSchema.model_validate(club) for club in clubs_models]
         clubs_list = [club.model_dump(mode='json') for club in clubs_schemas]
         json_data = ujson.dumps(clubs_list)
-        await self.redis.set(self.clubs_key, json_data, ex=3600)
-
+        await self.set_cache_retry(self.clubs_key, json_data, 3600)
         logger_club.info(f"Получено клубов: {len(clubs_schemas)}")
         return clubs_schemas
+
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential_jitter(1, max=3),
+        retry=retry_if_exception(check_retry_error),
+        reraise=True
+    )
+    async def set_cache_retry(self, key: str, value: str, expire: int):
+        await self.redis.set(key=key, value=value, ex=expire)
+        logger_club.info("Данные занесены в кеш после ретраев")
 
 
     async def update_clubs_info_service(self, club_id: UUID, update_sch: ClubSchemaUpdate) -> ClubSchema | None:
