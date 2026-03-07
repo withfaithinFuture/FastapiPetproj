@@ -3,8 +3,9 @@ import httpx
 import ujson
 from aiobreaker import CircuitBreaker
 from datetime import timedelta
-from tenacity import retry, stop_after_attempt, wait_exponential_jitter, retry_if_exception
-from src.services.core.retry_handler import check_retry_error
+from tenacity import retry, stop_after_attempt, wait_exponential_jitter, retry_if_exception, retry_if_exception_type
+from src.services.core.exceptions import UnavailableServiceError, NotFoundError, BadValueError, NotFoundByNameError, \
+    check_status
 from src.services.schemas.exchange_schemas import SecondServiceValidationSchema
 
 
@@ -22,14 +23,18 @@ class SecondClientService:
     @retry(
         stop=stop_after_attempt(2),
         wait=wait_exponential_jitter(1, max=5),
-        retry=retry_if_exception(check_retry_error),
+        retry=retry_if_exception_type(UnavailableServiceError),
         reraise=True
     )
     async def get_additional_info(self, exchange_name: str) -> SecondServiceValidationSchema:
         endpoint_url = f"{self.BASE_SECOND_SERVICE_URL}exchange/{exchange_name}"
 
-        response = await self.client.get(url=endpoint_url)
-        response.raise_for_status()
+        try:
+            response = await self.client.get(url=endpoint_url)
+        except httpx.RequestError:
+            raise UnavailableServiceError(service_name='Second_Service')
+
+        check_status(response=response, object_name=exchange_name, object_type='Second_Service')
 
         data = ujson.loads(response.text)
 
@@ -40,14 +45,14 @@ class SecondClientService:
     @retry(
         stop=stop_after_attempt(2),
         wait=wait_exponential_jitter(1, max=5),
-        retry=retry_if_exception(check_retry_error),
+        retry=retry_if_exception_type(UnavailableServiceError),
         reraise=True
     )
     async def create_additional_info(self, exchange_name: str) -> SecondServiceValidationSchema:
         endpoint_url = f"{self.BASE_SECOND_SERVICE_URL}exchange/{exchange_name}"
 
         response = await self.client.post(url=endpoint_url)
-        response.raise_for_status()
+        check_status(response=response, object_name=exchange_name, object_type='Second_Service')
 
         data = ujson.loads(response.text)
 

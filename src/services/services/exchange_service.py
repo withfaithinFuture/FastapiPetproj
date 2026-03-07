@@ -77,7 +77,7 @@ class ExchangeService:
 
             if result_model is None:
                 logger_exchange.warning(f"Биржа не найдена: {exchange_name}")
-                return None
+                raise NotFoundByNameError(exchange_name, 'Exchange')
 
             old_data_dict = ExchangeResponseSchema.model_validate(result_model).model_dump()
             json_data = json.dumps(old_data_dict, default=str)
@@ -99,7 +99,7 @@ class ExchangeService:
 
         if existing_exchange is None:
             logger_exchange.warning(f"Биржа не найдена: ID={exchange_id}")
-            return None
+            raise NotFoundError(exchange_id, "exchange")
 
         for key, value in update_dict.items():
             if hasattr(existing_exchange, key):
@@ -121,7 +121,7 @@ class ExchangeService:
 
         if exist_owner is None:
             logger_exchange.warning(f"Владелец не найден: ID={owner_id}")
-            return None
+            raise NotFoundError(owner_id, "owner")
 
         for key, value in update_info_dict.items():
             if hasattr(exist_owner, key):
@@ -140,7 +140,7 @@ class ExchangeService:
 
         if exchange_by_id is None:
             logger_exchange.warning(f"Биржа не найдена для удаления: ID={exchange_id}")
-            return None
+            raise NotFoundError(exchange_id, "Exchange")
 
         logger_exchange.info(f"Найдена биржа для удаления: ID={exchange_id}")
         await self.exch_rep.delete_exchange_or_owner(exchange_by_id)
@@ -156,7 +156,7 @@ class ExchangeService:
 
         if owner_by_id is None:
             logger_exchange.warning(f"Владелец не найден для удаления: ID={owner_id}")
-            return None
+            raise NotFoundError(owner_id, "Owner")
 
         logger_exchange.info(f"Найден владелец для удаления: ID={owner_id}")
         await self.exch_rep.delete_exchange_or_owner(owner_by_id)

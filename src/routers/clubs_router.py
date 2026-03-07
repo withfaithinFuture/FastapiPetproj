@@ -22,35 +22,19 @@ async def get_clubs(clsrv: ClubService = Depends(get_club_service)):
 
 @router.patch('/clubs/{club_id}', status_code=status.HTTP_200_OK)
 async def update_clubs(club_id: UUID, club_update: ClubSchemaUpdate, clsrv: ClubService = Depends(get_club_service)):
-    updated_club =  await clsrv.update_clubs_info_service(club_id, club_update)
-    if updated_club is None:
-        raise NotFoundError(club_id, 'club')
-
-    return updated_club
+    return await clsrv.update_clubs_info_service(club_id, club_update)
 
 
 @router.patch('/clubs/{player_id}', status_code=status.HTTP_200_OK)
 async def update_players(player_id: UUID, player_update: PlayerSchemaUpdate, clsrv: ClubService = Depends(get_club_service)):
-    updated_player= await clsrv.update_players_info_service(player_id, player_update)
-    if updated_player is None:
-        raise NotFoundError(player_id, "player")
-
-    return updated_player
+    return await clsrv.update_players_info_service(player_id, player_update)
 
 
 @router.delete('/clubs/{club_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_club_by_id(club_id: UUID, clsrv: ClubService = Depends(get_club_service)):
-    deleted_club = await clsrv.delete_club_by_id(club_id)
-    if deleted_club is None:
-        raise NotFoundError(club_id, 'Club')
-
-    return deleted_club
+    return await clsrv.delete_club_by_id(club_id)
 
 
 @router.delete('/players/{player_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_player_by_id(player_id: UUID, clsrv: ClubService = Depends(get_club_service)):
-    deleted_player =  await clsrv.delete_player_by_id(player_id)
-    if deleted_player is None:
-        raise NotFoundError(player_id, 'Player')
-
-    return deleted_player
+     return await clsrv.delete_player_by_id(player_id)

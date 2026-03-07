@@ -6,6 +6,17 @@ from fastapi import HTTPException, status
 
 logger = logging.getLogger('app.exceptions')
 
+
+def check_status(response, object_name: str, object_type: str):
+    if response.status_code >= 500:
+        raise UnavailableServiceError(service_name='Second_Service')
+
+    if 400 <= response.status_code < 500:
+        if response.status_code == 404:
+            raise NotFoundByNameError(object_name=object_name, object_type=object_type)
+        raise BadValueError(field_name='Exchange')
+
+
 class NotFoundError(HTTPException):
     def __init__(self, object_id: UUID, object_type: str):
         self.object_id = object_id
@@ -74,9 +85,9 @@ class UnavailableServiceError(HTTPException):
         self.error = f"{self.service_name}_is_not_responding"
         self.message = f"{self.service_name} is unavailable"
 
-        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail={
-            "error": f"{self.service_name}_not_found",
-            "message": f"{self.service_name} was not found"})
+        super().__init__(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail={
+            "error": self.error,
+            "message": self.message})
 
 
 class Server500Error(Exception):
@@ -88,3 +99,19 @@ class Server500Error(Exception):
         self.message = f"{self.service_name} returned server error: {self.status_code}"
 
         super().__init__(self.message)
+
+
+class BadValueError(HTTPException):
+    def __init__(self, field_name: str):
+        self.field_name = field_name
+
+        self.error = f"{self.field_name}_is_invalid"
+        self.message = f"{self.field_name} has invalid value"
+
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": self.error,
+                "message": self.message
+            }
+        )

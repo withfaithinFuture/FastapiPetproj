@@ -5,6 +5,8 @@ import ujson
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from tenacity import retry, wait_exponential_jitter, stop_after_attempt, retry_if_exception
+
+from src.services.core.exceptions import NotFoundError
 from src.services.core.retry_handler import check_retry_error
 from src.services.schemas.player_schemas import PlayerSchemaUpdate
 from src.models.football_players import Player
@@ -83,7 +85,7 @@ class ClubService:
 
         if existing_club is None:
             logger_club.warning(f"Клуб не найден: ID={club_id}")
-            return None
+            raise NotFoundError(club_id, 'club')
 
         for key, value in update_sch_dict.items():
             if hasattr(existing_club, key):
@@ -121,7 +123,7 @@ class ClubService:
 
         if existing_player is None:
             logger_club.warning(f"Игрок не найден: ID={player_id}")
-            return None
+            raise NotFoundError(player_id, "Player")
 
         for key, value in update_sch_dict.items():
             if hasattr(existing_player, key):
@@ -141,7 +143,7 @@ class ClubService:
 
         if club_by_id is None:
             logger_club.warning(f"Клуб не найден: ID={club_id}")
-            return None
+            raise NotFoundError(club_id, 'Club')
 
         logger_club.info(f"Найден клуб для удаления: ID={club_id}")
         await self.club_rep.delete_club_or_player(club_by_id)
@@ -157,7 +159,7 @@ class ClubService:
 
         if player_by_id is None:
             logger_club.warning(f"Футболист не найден: ID={player_id}")
-            return None
+            raise NotFoundError(player_id, 'Player')
 
         logger_club.info(f"Найден игрок для удаления: ID={player_id}")
         await self.club_rep.delete_club_or_player(player_by_id)
