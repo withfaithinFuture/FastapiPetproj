@@ -6,6 +6,17 @@ from fastapi import HTTPException, status
 
 logger = logging.getLogger('app.exceptions')
 
+
+def check_status(response, object_name: str, object_type: str):
+    if response.status_code >= 500:
+        raise UnavailableServiceError(service_name='Second_Service')
+
+    if 400 <= response.status_code < 500:
+        if response.status_code == 404:
+            raise NotFoundByNameError(object_name=object_name, object_type=object_type)
+        raise BadValueError(field_name='Exchange')
+
+
 class NotFoundError(HTTPException):
     def __init__(self, object_id: UUID, object_type: str):
         self.object_id = object_id
@@ -17,6 +28,19 @@ class NotFoundError(HTTPException):
             "error": f"{self.object_type}_not_found",
             "message": f"{self.object_type} with id={self.object_id} was not found",
             f"{self.object_type}_id": str(self.object_id)})
+
+
+class NotFoundByNameError(HTTPException):
+    def __init__(self, object_name: str, object_type: str):
+        self.object_name = object_name
+        self.object_type = object_type
+
+        logger.warning(f'{self.object_type} not found: name={self.object_name}')
+
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail={
+            "error": f"{self.object_type}_not_found",
+            "message": f"{self.object_type} with name={self.object_name} was not found",
+            f"{self.object_type}_name": str(self.object_name)})
 
 
 class AgeMinorError(HTTPException):
@@ -50,5 +74,44 @@ class FutureDateError(HTTPException):
                 "message": f"{self.object_type} date cannot be in the future",
                 f"{self.object_type}_date": date.isoformat(),
                 "current_date": dt.date.today().isoformat()
+            }
+        )
+
+
+class UnavailableServiceError(HTTPException):
+    def __init__(self, service_name: str):
+        self.service_name = service_name
+
+        self.error = f"{self.service_name}_is_not_responding"
+        self.message = f"{self.service_name} is unavailable"
+
+        super().__init__(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail={
+            "error": self.error,
+            "message": self.message})
+
+
+class Server500Error(Exception):
+    def __init__(self, service_name: str, status_code: int):
+        self.service_name = service_name
+        self.status_code = status_code
+
+        self.error = f"{self.service_name}_internal_error_{self.status_code}"
+        self.message = f"{self.service_name} returned server error: {self.status_code}"
+
+        super().__init__(self.message)
+
+
+class BadValueError(HTTPException):
+    def __init__(self, field_name: str):
+        self.field_name = field_name
+
+        self.error = f"{self.field_name}_is_invalid"
+        self.message = f"{self.field_name} has invalid value"
+
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": self.error,
+                "message": self.message
             }
         )
