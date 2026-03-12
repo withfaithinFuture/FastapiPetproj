@@ -60,10 +60,6 @@ def upgrade() -> None:
     sa.Column('exchange_name', sa.String(), nullable=False),
     sa.Column('work_in_Russia', sa.Boolean(), nullable=False),
     sa.Column('volume', sa.Float(), nullable=False),
-    sa.Column('trust_score', sa.Integer(), nullable=False),
-    sa.Column('btc_price', sa.Float(), nullable=False),
-    sa.Column('eth_price', sa.Float(), nullable=False),
-    sa.Column('sol_price', sa.Float(), nullable=False),
     sa.ForeignKeyConstraint(['owner_id'], ['exchange_owners.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('owner_id')

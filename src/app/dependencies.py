@@ -3,7 +3,7 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.services.club_service import ClubService
 from src.services.services.exchange_service import ExchangeService
-from src.services.services.second_client_service import SecondClientService
+from client.second_client import SecondClient
 from src.services.services.shares_service import SharesService
 from src.services.db.db import get_session
 
@@ -18,7 +18,7 @@ def get_club_service(session: AsyncSession = Depends(get_session), redis: Redis 
 
 
 def get_exch_service(session: AsyncSession = Depends(get_session), redis: Redis = Depends(get_redis)) -> ExchangeService:
-    second_service = SecondClientService()
+    second_service = SecondClient()
     return ExchangeService(session, redis, second_service, 'exchanges_list')
 
 

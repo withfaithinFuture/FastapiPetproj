@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from src.models.exchanges import SagaStatus
 from src.models.exchange_owners import Owner
 from src.models.exchanges import Exchange
 
@@ -24,7 +25,7 @@ class ExchangesOwnersRepository:
 
 
     async def get_exchanges_info(self) -> Sequence[Exchange]:
-        query = select(Exchange).options(selectinload(Exchange.owner))
+        query = select(Exchange).options(selectinload(Exchange.owner)).where(Exchange.status == SagaStatus.ACTIVE)
         result = await self.session.execute(query)
         return result.scalars().all()
 

@@ -1,6 +1,8 @@
 import json
 import logging
 from uuid import UUID
+
+import ujson
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.schemas.shares_users_schemas import UserSchema, UserSchemaUpdate
@@ -38,10 +40,25 @@ class SharesService:
         new_user.user_shares = shares
 
         saved_user = await self.user_rep.create_shares(new_user, shares)
-        await self.redis.delete(self.shares_key)
+        response_schema = UserSchema.model_validate(saved_user)
+
+        try:
+            cached_data = await self.redis.get(self.shares_key)
+            if cached_data:
+                users_list = ujson.loads(cached_data)
+                new_user_dict = response_schema.model_dump(mode='json')
+                users_list.append(new_user_dict)
+
+                await self.redis.set(self.shares_key, ujson.dumps(users_list), ex=3600)
+                logger_shares.info(f"Новый пользователь {saved_user.username} добавлен в кэш")
+
+        except Exception as e:
+            logger_shares.error(f"Ошибка добавления в кэш: {e}")
+            await self.redis.delete(self.shares_key)
+
         logger_shares.info(f"Пользователь сохранен: username={saved_user.username}, ID={saved_user.id}")
 
-        return UserSchema.model_validate(saved_user)
+        return response_schema
 
 
     async def get_shares_info_service(self) -> list[UserSchema]:
@@ -66,7 +83,7 @@ class SharesService:
     async def update_user_shares_info_service(self, user_id: UUID, update_data: UserSchemaUpdate) -> UserSchemaUpdate | None:
         logger_shares.info(f"Обновление пользователя: ID={user_id}")
 
-        update_data_dict = update_data.model_dump(exclude_none=True)
+        update_data_dict = update_data.model_dump(exclude_none=True, mode='json')
         existing_user = await self.user_rep.get_user_by_id(user_id)
 
         if existing_user is None:
@@ -78,16 +95,31 @@ class SharesService:
                 setattr(existing_user, key, value)
 
         await self.user_rep.update_object(existing_user)
-        await self.redis.delete(self.shares_key)
-        logger_shares.info(f"Пользователь обновлен: ID={user_id}")
 
+        try:
+            cached_data = await self.redis.get(self.shares_key)
+            if cached_data:
+                users_list = ujson.loads(cached_data)
+                for user in users_list:
+                    if str(user.get('id')) == str(user_id):
+                        user.update(update_data_dict)
+                        break
+
+                await self.redis.set(self.shares_key, ujson.dumps(users_list), ex=3600)
+                logger_shares.info(f"Кэш пользователя {existing_user.username} обновлен")
+
+        except Exception as e:
+            logger_shares.error(f"Ошибка при обновлении кэша пользователя: {e}")
+            await self.redis.delete(self.shares_key)
+
+        logger_shares.info(f"Пользователь обновлен: ID={user_id}")
         return UserSchemaUpdate.model_validate(existing_user)
 
 
     async def update_share_info_service(self, share_id: UUID, update_info: SharesSchemaUpdate) -> SharesSchemaUpdate | None:
         logger_shares.info(f"Обновление акции: ID={share_id}")
 
-        update_info_dict = update_info.model_dump(exclude_none=True)
+        update_info_dict = update_info.model_dump(exclude_none=True, mode='json')
         existing_share = await self.user_rep.get_share_by_id(share_id)
 
         if existing_share is None:
@@ -99,9 +131,31 @@ class SharesService:
                 setattr(existing_share, key, value)
 
         await self.user_rep.update_object(existing_share)
-        await self.redis.delete(self.shares_key)
-        logger_shares.info(f"Акция обновлена: ID={share_id}")
 
+        try:
+            cached_data = await self.redis.get(self.shares_key)
+            if cached_data:
+                users_list = ujson.loads(cached_data)
+                updated = False
+
+                for user in users_list:
+                    for share in user.get('user_shares', []):
+                        if str(share.get('id')) == str(share_id):
+                            share.update(update_info_dict)
+                            updated = True
+                            break
+
+                    if updated:
+                        break
+
+                await self.redis.set(self.shares_key, ujson.dumps(users_list), ex=3600)
+                logger_shares.info("Кэш акции обновлен")
+
+        except Exception as e:
+            logger_shares.error(f"Ошибка при обновлении кэша акции: {e}")
+            await self.redis.delete(self.shares_key)
+
+        logger_shares.info(f"Акция обновлена: ID={share_id}")
         return SharesSchemaUpdate.model_validate(existing_share)
 
 

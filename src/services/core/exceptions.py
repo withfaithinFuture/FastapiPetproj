@@ -17,12 +17,16 @@ def check_status(response, object_name: str, object_type: str):
         raise BadValueError(field_name='Exchange')
 
 
+class CacheNotSavedError(Exception):
+    pass
+
+
 class NotFoundError(HTTPException):
     def __init__(self, object_id: UUID, object_type: str):
         self.object_id = object_id
         self.object_type = object_type
 
-        logger.warning(f'{self.object_type} not found: id={self.object_id}')
+        logger.error(f'{self.object_type} not found: id={self.object_id}')
 
         super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail={
             "error": f"{self.object_type}_not_found",
@@ -30,12 +34,29 @@ class NotFoundError(HTTPException):
             f"{self.object_type}_id": str(self.object_id)})
 
 
+class LocalDBError(HTTPException):
+    def __init__(self, object_type: str, object_id: str):
+        self.object_type = object_type
+        self.object_id = object_id
+
+        logger.error(f"DB error: {self.object_type}: id - {self.object_id}")
+
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": "local_database_error",
+                "message": f"{self.object_type} saving wasn`t done. There is an error",
+                f"{self.object_type.lower()}_identifier": self.object_id
+            }
+        )
+
+
 class NotFoundByNameError(HTTPException):
     def __init__(self, object_name: str, object_type: str):
         self.object_name = object_name
         self.object_type = object_type
 
-        logger.warning(f'{self.object_type} not found: name={self.object_name}')
+        logger.error(f'{self.object_type} not found: name={self.object_name}')
 
         super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail={
             "error": f"{self.object_type}_not_found",
@@ -48,7 +69,7 @@ class AgeMinorError(HTTPException):
         self.date = date
         self.object_type = object_type
 
-        logger.warning(f'{self.object_type} is underage: birth_date={date}')
+        logger.error(f'{self.object_type} is underage: birth_date={date}')
 
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -65,7 +86,7 @@ class FutureDateError(HTTPException):
         self.date = date
         self.object_type = object_type
 
-        logger.warning(f'{self.object_type} has future date: {date}')
+        logger.error(f'{self.object_type} has future date: {date}')
 
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -85,20 +106,25 @@ class UnavailableServiceError(HTTPException):
         self.error = f"{self.service_name}_is_not_responding"
         self.message = f"{self.service_name} is unavailable"
 
+        logger.error(f'{self.service_name} is not available')
+
         super().__init__(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail={
             "error": self.error,
             "message": self.message})
 
 
-class Server500Error(Exception):
-    def __init__(self, service_name: str, status_code: int):
+class SagaTransactionError(HTTPException):
+    def __init__(self, service_name: str):
         self.service_name = service_name
-        self.status_code = status_code
 
-        self.error = f"{self.service_name}_internal_error_{self.status_code}"
-        self.message = f"{self.service_name} returned server error: {self.status_code}"
+        self.error = f"{self.service_name}_saga_transaction_failed"
+        self.message = f"'{self.service_name}' transaction failed"
 
-        super().__init__(self.message)
+        logger.error(f'{self.service_name} saga transaction error')
+
+        super().__init__(status_code=status.HTTP_502_BAD_GATEWAY, detail={
+                "error": self.error,
+                "message": self.message})
 
 
 class BadValueError(HTTPException):
@@ -107,6 +133,8 @@ class BadValueError(HTTPException):
 
         self.error = f"{self.field_name}_is_invalid"
         self.message = f"{self.field_name} has invalid value"
+
+        logger.error(f'{self.field_name} bad value error')
 
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,

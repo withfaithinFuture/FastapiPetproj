@@ -1,14 +1,13 @@
+import ujson
 from sqlalchemy.ext.asyncio import AsyncSession
 import json
 import logging
 from uuid import UUID
 from redis.asyncio import Redis
-
-from src.services.services.second_client_service import SecondClientService
+from src.saga.exchange_orchestrator import SaveExchangeOrchestrator
+from src.client.second_client import SecondClient
 from src.services.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema
 from src.services.core.exceptions import NotFoundError, NotFoundByNameError
-from src.models.exchange_owners import Owner
-from src.models.exchanges import Exchange
 from src.services.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeUpdateSchema, \
     ExchangeOwnerSchema, ExchangeResponseSchema
 from src.services.repositories.exchanges_repo import ExchangesOwnersRepository as exch_rep
@@ -18,29 +17,19 @@ logger_exchange = logging.getLogger("services.exchange")
 
 class ExchangeService:
 
-    def __init__(self, session: AsyncSession, redis: Redis, second_service_client: SecondClientService, exchange_key: str):
+    def __init__(self, session: AsyncSession, redis: Redis, second_service_client: SecondClient, exchange_key: str):
         self.session = session
         self.exch_rep = exch_rep(self.session)
         self.redis = redis
         self.second_service_client = second_service_client
         self.exchange_key = exchange_key
+        self.orchestrator = SaveExchangeOrchestrator(exchange_repo=self.exch_rep, second_client=self.second_service_client, redis=self.redis)
 
 
     async def create_exchange_service(self, exchange_data: ExchangeCreateSchema) -> ExchangeResponseSchema:
-        logger_exchange.info("Добавление биржи с владельцем")
 
-        owner_data_dict, exchange_data_dict = exchange_data.owner.model_dump(), exchange_data.model_dump(exclude='owner')
-        logger_exchange.info("Получение доп. данных со 2 сервиса")
-        additional_exchange_data = await self.second_service_client.create_additional_info(exchange_name=exchange_data_dict['exchange_name'])
-        full_exchange_data_dict = exchange_data_dict | additional_exchange_data.model_dump()
-        owner, exchange = Owner(**owner_data_dict), Exchange(**full_exchange_data_dict)
-        exchange.owner = owner
+        return await self.orchestrator.create_exchange_with_saga(exchange_data=exchange_data, exchange_key=self.exchange_key)
 
-        await self.exch_rep.create_exchange(owner, exchange)
-        await self.redis.delete(self.exchange_key)
-        logger_exchange.info(f"Биржа добавлена: ID={exchange.id}")
-
-        return ExchangeResponseSchema.model_validate(exchange)
 
 
     async def get_exchanges_info_service(self) -> list[ExchangeResponseSchema]:
@@ -94,7 +83,7 @@ class ExchangeService:
     async def update_exchange_info_service(self, exchange_id: UUID, update_info: ExchangeUpdateSchema) -> ExchangeCreateSchema | None:
         logger_exchange.info(f"Обновление биржи: ID={exchange_id}")
 
-        update_dict = update_info.model_dump(exclude_none=True)
+        update_dict = update_info.model_dump(exclude_none=True, mode='json')
         existing_exchange = await self.exch_rep.update_exchange_info(exchange_id)
 
         if existing_exchange is None:
@@ -106,9 +95,32 @@ class ExchangeService:
                 setattr(existing_exchange, key, value)
 
         await self.exch_rep.update_object(existing_exchange)
-        await self.redis.delete(self.exchange_key)
-        await self.redis.delete(f"exchange:{existing_exchange.exchange_name}")
-        logger_exchange.info(f"Биржа обновлена: ID={exchange_id}")
+
+        try:
+            named_exchange_key = f"exchange:{existing_exchange.exchange_name}"
+            cached_data = await self.redis.get(named_exchange_key)
+            if cached_data:
+                exchange_dict = ujson.loads(cached_data)
+                exchange_dict.update(update_dict)
+
+                await self.redis.set(named_exchange_key, ujson.dumps(exchange_dict), ex=3600)
+
+            exchanges_cache = await self.redis.get(self.exchange_key)
+            if exchanges_cache:
+                exchanges_list = ujson.loads(exchanges_cache)
+                for exchange in exchanges_list:
+                    if exchange.get('id') == str(exchange_id):
+                        exchange.update(update_dict)
+                        break
+                await self.redis.set(self.exchange_key, ujson.dumps(exchanges_list), ex=3600)
+
+            logger_exchange.info(f"Биржа обновлена: ID={exchange_id}")
+
+        except Exception as e:
+            logger_exchange.error(f"Ошибка при обновлении кэша биржи: {e}")
+
+            await self.redis.delete(self.exchange_key)
+            await self.redis.delete(f"exchange:{existing_exchange.exchange_name}")
 
         return ExchangeCreateSchema.model_validate(existing_exchange)
 
@@ -116,7 +128,7 @@ class ExchangeService:
     async def update_owner_info_service(self, owner_id: UUID, update_info: ExchangeOwnerUpdateSchema) -> ExchangeOwnerSchema | None:
         logger_exchange.info(f"Обновление владельца: ID={owner_id}")
 
-        update_info_dict = update_info.model_dump(exclude_none=True)
+        update_info_dict = update_info.model_dump(exclude_none=True, mode='json')
         exist_owner = await self.exch_rep.update_owner_info(owner_id)
 
         if exist_owner is None:
@@ -128,8 +140,34 @@ class ExchangeService:
                 setattr(exist_owner, key, value)
 
         await self.exch_rep.update_object(exist_owner)
-        await self.redis.delete(self.exchange_key)
-        await self.redis.delete(f"exchange:{exist_owner.exchange.exchange_name}")
+
+        try:
+            exchange_name = exist_owner.exchange.exchange_name
+            named_exchange_key = f"exchange:{exchange_name}"
+
+            cached_data = await self.redis.get(named_exchange_key)
+            if cached_data:
+                exchange_dict = ujson.loads(cached_data)
+                exchange_dict['owner'].update(update_info_dict)
+                await self.redis.set(named_exchange_key, ujson.dumps(exchange_dict), ex=3600)
+
+            exchanges_cache = await self.redis.get(self.exchange_key)
+            if exchanges_cache:
+                exchanges_list = ujson.loads(exchanges_cache)
+                for exchange in exchanges_list:
+                    owner_dict = exchange.get('owner')
+                    if owner_dict['id'] == str(owner_id):
+                        owner_dict.update(update_info_dict)
+                        break
+                await self.redis.set(self.exchange_key, ujson.dumps(exchanges_list), ex=3600)
+
+            logger_exchange.info(f"Обновление владельца: ID={owner_id}")
+
+        except Exception as e:
+            logger_exchange.error(f"Ошибка при обновлении кэша владельца: {e}")
+            await self.redis.delete(self.exchange_key)
+            await self.redis.delete(f"exchange:{exist_owner.exchange.exchange_name}")
+
         logger_exchange.info(f"Владелец обновлен: ID={owner_id}")
 
         return ExchangeOwnerSchema.model_validate(exist_owner)

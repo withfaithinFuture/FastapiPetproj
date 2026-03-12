@@ -11,7 +11,7 @@ from src.services.schemas.exchange_schemas import SecondServiceValidationSchema
 
 second_service_breaker = CircuitBreaker(fail_max=3, timeout_duration=timedelta(seconds=15))
 
-class SecondClientService:
+class SecondClient:
 
     BASE_SECOND_SERVICE_URL = os.getenv('BASE_SECOND_SERVICE_URL')
 
