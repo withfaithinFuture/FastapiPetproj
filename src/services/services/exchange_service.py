@@ -4,12 +4,12 @@ import json
 import logging
 from uuid import UUID
 from redis.asyncio import Redis
-from src.saga.exchange_orchestrator import SaveExchangeOrchestrator
+from services.services.exchange_orchestrator import SaveExchangeOrchestrator
 from src.client.second_client import SecondClient
 from src.services.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema
 from src.services.core.exceptions import NotFoundError, NotFoundByNameError
 from src.services.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeUpdateSchema, \
-    ExchangeOwnerSchema, ExchangeResponseSchema
+    ExchangeOwnerSchema, ExchangeResponseSchema, SecondServiceValidationSchema
 from src.services.repositories.exchanges_repo import ExchangesOwnersRepository as exch_rep
 
 
@@ -73,7 +73,9 @@ class ExchangeService:
 
             await self.redis.set(exchange_key, json_data, ex=3600)
 
-        fresh_additional_data = await self.second_service_client.get_additional_info(exchange_name=exchange_name)
+        fresh_additional_data_dict = await self.second_service_client.get_additional_info(exchange_name=exchange_name)
+        fresh_additional_data = SecondServiceValidationSchema.model_validate(fresh_additional_data_dict)
+
         new_exchange_model = old_data_dict | fresh_additional_data.model_dump()
         logger_exchange.info(f"Биржа найдена: name={exchange_name}")
 

@@ -25,7 +25,7 @@ class ExchangesOwnersRepository:
 
 
     async def get_exchanges_info(self) -> Sequence[Exchange]:
-        query = select(Exchange).options(selectinload(Exchange.owner)).where(Exchange.status == SagaStatus.ACTIVE)
+        query = select(Exchange).options(selectinload(Exchange.owner))
         result = await self.session.execute(query)
         return result.scalars().all()
 

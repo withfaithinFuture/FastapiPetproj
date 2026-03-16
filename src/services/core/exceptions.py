@@ -7,16 +7,6 @@ from fastapi import HTTPException, status
 logger = logging.getLogger('app.exceptions')
 
 
-def check_status(response, object_name: str, object_type: str):
-    if response.status_code >= 500:
-        raise UnavailableServiceError(service_name='Second_Service')
-
-    if 400 <= response.status_code < 500:
-        if response.status_code == 404:
-            raise NotFoundByNameError(object_name=object_name, object_type=object_type)
-        raise BadValueError(field_name='Exchange')
-
-
 class CacheNotSavedError(Exception):
     pass
 
@@ -35,18 +25,18 @@ class NotFoundError(HTTPException):
 
 
 class LocalDBError(HTTPException):
-    def __init__(self, object_type: str, object_id: str):
+    def __init__(self, object_type: str, object_name: str):
         self.object_type = object_type
-        self.object_id = object_id
+        self.object_name = object_name
 
-        logger.error(f"DB error: {self.object_type}: id - {self.object_id}")
+        logger.error(f"DB error: {self.object_type}: id - {self.object_name}")
 
         super().__init__(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "error": "local_database_error",
                 "message": f"{self.object_type} saving wasn`t done. There is an error",
-                f"{self.object_type.lower()}_identifier": self.object_id
+                f"{self.object_type.lower()}_identifier": self.object_name
             }
         )
 
@@ -141,5 +131,25 @@ class BadValueError(HTTPException):
             detail={
                 "error": self.error,
                 "message": self.message
+            }
+        )
+
+
+class ExternalClientError(HTTPException):
+    def __init__(self, service_name: str, status_code: int, details: str):
+        self.service_name = service_name
+        self.status_code = status_code
+        self.details = details
+
+        self.error = f"{self.service_name}_client_error"
+        self.message = f"Request to {self.service_name} failed with status {self.status_code}"
+
+        logger.error(f'{self.service_name} external client error')
+
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": self.error,
+                "message": self.message,
             }
         )

@@ -1,15 +1,9 @@
-import enum
 import sqlalchemy as sa
 from sqlalchemy import ForeignKey
 from uuid import UUID, uuid4
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from src.enums.saga_enums import SagaStatus
 from src.services.db.base_service import Base
-
-
-class SagaStatus(str, enum.Enum):
-    PENDING = "PENDING"
-    ACTIVE = "ACTIVE"
-    FAILED = "FAILED"
 
 
 class Exchange(Base):
