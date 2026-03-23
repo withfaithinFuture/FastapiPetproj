@@ -3,7 +3,7 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.services.club_service import ClubService
 from src.services.services.exchange_service import ExchangeService
-from client.second_client import SecondClient
+from src.client.market_data_client import SecondClient
 from src.services.services.shares_service import SharesService
 from src.services.db.db import get_session
 

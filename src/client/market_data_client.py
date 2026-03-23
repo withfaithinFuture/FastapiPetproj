@@ -1,10 +1,9 @@
-import os
 import httpx
 import ujson
 from aiobreaker import CircuitBreaker
 from datetime import timedelta
 from tenacity import retry, stop_after_attempt, wait_exponential_jitter, retry_if_exception_type
-from src.services.core.utils import check_status
+from src.client.utils import check_status
 from src.services.core.exceptions import UnavailableServiceError
 from src.services.schemas.exchange_schemas import SecondServiceValidationSchema
 from src.app.config import Settings
@@ -12,7 +11,7 @@ from src.app.config import Settings
 
 class SecondClient:
 
-    SERVICE_NAME = "market_data_service"
+    SERVICE_NAME = Settings.SERVICE_NAME
 
     def __init__(self):
         self.settings = Settings()
@@ -32,11 +31,7 @@ class SecondClient:
     async def get_additional_info(self, exchange_name: str) -> SecondServiceValidationSchema:
         endpoint_url = f"/exchange/{exchange_name}"
 
-        try:
-            response = await self.client.get(url=endpoint_url)
-        except Exception as e:
-            raise UnavailableServiceError(service_name=self.SERVICE_NAME)
-
+        response = await self.client.get(url=endpoint_url)
         check_status(response=response, object_name=exchange_name, object_type=self.SERVICE_NAME)
 
         return ujson.loads(response.text)
@@ -51,11 +46,7 @@ class SecondClient:
     async def create_additional_info(self, exchange_name: str) -> SecondServiceValidationSchema:
         endpoint_url = f"/exchange/{exchange_name}"
 
-        try:
-            response = await self.client.post(url=endpoint_url)
-        except Exception as e:
-            raise UnavailableServiceError(service_name=self.SERVICE_NAME)
-
+        response = await self.client.post(url=endpoint_url)
         check_status(response=response, object_name=exchange_name, object_type=self.SERVICE_NAME)
 
         return ujson.loads(response.text)
@@ -70,10 +61,7 @@ class SecondClient:
     async def delete_additional_info(self, exchange_name: str):
         endpoint_url = f"/exchange/{exchange_name}"
 
-        try:
-            response = await self.client.delete(url=endpoint_url)
-        except Exception as e:
-            raise UnavailableServiceError(service_name=self.SERVICE_NAME)
+        response = await self.client.delete(url=endpoint_url)
 
         if response.status_code == 404:
             return True
@@ -81,4 +69,3 @@ class SecondClient:
         check_status(response=response, object_name=exchange_name, object_type=self.SERVICE_NAME)
 
         return True
-

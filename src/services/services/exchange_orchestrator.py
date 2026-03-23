@@ -7,13 +7,13 @@ from src.services.schemas.exchange_schemas import ExchangeResponseSchema, Exchan
 from src.services.core.exceptions import SagaTransactionError, LocalDBError
 from src.models.exchange_owners import Owner
 from src.models.exchanges import Exchange
-from src.client.second_client import SecondClient
+from src.client.market_data_client import SecondClient
 from src.services.repositories.exchanges_repo import ExchangesOwnersRepository
 
 
 logger_saga = logging.getLogger("saga_orch")
 
-class SaveExchangeOrchestrator:
+class ExchangeOrchestratorService:
 
     def __init__(self, exchange_repo: ExchangesOwnersRepository, second_client: SecondClient, redis: Redis):
         self.exchange_repo = exchange_repo
@@ -27,6 +27,13 @@ class SaveExchangeOrchestrator:
         owner_dict = exchange_data.owner.model_dump()
         exchange_dict = exchange_data.model_dump(exclude='owner')
 
+        existing_exchange = await self.exchange_repo.get_exchange_by_name(exchange_name=exchange_dict['exchange_name'])
+        if existing_exchange:
+            if existing_exchange.status == SagaStatus.FINISHED:
+                logger_saga.info(f"Биржа {exchange_dict['exchange_name']} уже создана сагой")
+                ExchangeResponseSchema.model_validate(existing_exchange)
+
+
         owner = Owner(**owner_dict)
         exchange = Exchange(**exchange_dict)
         exchange.owner = owner
@@ -35,6 +42,7 @@ class SaveExchangeOrchestrator:
         try:
             await self.exchange_repo.create_exchange(owner=owner, exchange=exchange)
             await self.exchange_repo.session.commit()
+            exchange.status = SagaStatus.ACTIVE
 
             logger_saga.info(f"Сага - успешная локальная транза, биржа - {exchange_dict['exchange_name']}")
 
@@ -63,7 +71,7 @@ class SaveExchangeOrchestrator:
                 if hasattr(exchange, key):
                     setattr(exchange, key, value)
 
-            exchange.status = SagaStatus.ACTIVE
+            exchange.status = SagaStatus.FINISHED
 
             await self.exchange_repo.update_object(exchange)
             await self.exchange_repo.session.commit()
@@ -92,7 +100,7 @@ class SaveExchangeOrchestrator:
             logger_saga.error(f"кэш в саге не обновился из-за ошибки: {e}")
             await self.redis.delete(exchange_key)
 
-        logger_saga.info(f"сага завершена, у биржи {exchange_dict['exchange_name']} статус - ACTIVE")
+        logger_saga.info(f"сага завершена, у биржи {exchange_dict['exchange_name']} статус - FINISHED")
 
 
         return ExchangeResponseSchema.model_validate(exchange)

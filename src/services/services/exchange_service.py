@@ -4,8 +4,8 @@ import json
 import logging
 from uuid import UUID
 from redis.asyncio import Redis
-from services.services.exchange_orchestrator import SaveExchangeOrchestrator
-from src.client.second_client import SecondClient
+from services.services.exchange_orchestrator import ExchangeOrchestratorService
+from src.client.market_data_client import SecondClient
 from src.services.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema
 from src.services.core.exceptions import NotFoundError, NotFoundByNameError
 from src.services.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeUpdateSchema, \
@@ -23,7 +23,7 @@ class ExchangeService:
         self.redis = redis
         self.second_service_client = second_service_client
         self.exchange_key = exchange_key
-        self.orchestrator = SaveExchangeOrchestrator(exchange_repo=self.exch_rep, second_client=self.second_service_client, redis=self.redis)
+        self.orchestrator = ExchangeOrchestratorService(exchange_repo=self.exch_rep, second_client=self.second_service_client, redis=self.redis)
 
 
     async def create_exchange_service(self, exchange_data: ExchangeCreateSchema) -> ExchangeResponseSchema:
