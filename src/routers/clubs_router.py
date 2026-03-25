@@ -1,9 +1,10 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
+from src.services.core.exceptions import NotFoundError
 from src.services.schemas.player_schemas import PlayerSchemaUpdate
 from src.services.schemas.club_schemas import ClubSchemaUpdate
 from src.services.schemas.club_schemas import ClubSchema
-from services.services.club_service import ClubService
+from src.services.services.club_service import ClubService
 from src.app.dependencies import get_club_service
 
 
@@ -36,4 +37,4 @@ async def delete_club_by_id(club_id: UUID, clsrv: ClubService = Depends(get_club
 
 @router.delete('/players/{player_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_player_by_id(player_id: UUID, clsrv: ClubService = Depends(get_club_service)):
-    return await clsrv.delete_player_by_id(player_id)
+     return await clsrv.delete_player_by_id(player_id)

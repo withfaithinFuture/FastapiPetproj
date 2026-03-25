@@ -22,7 +22,7 @@ class UserSharesRepository:
 
 
     async def get_shares_info(self):
-        query = select(Share).options(selectinload(Share.owner_share))
+        query = select(User).options(selectinload(User.user_shares))
         result = await self.session.execute(query)
         return result.scalars().all()
 
