@@ -10,9 +10,9 @@ from src.services.services.exchange_service import ExchangeService
 
 router = APIRouter(tags=['Actions with the exchange'])
 
-@router.post('/exchange', status_code=status.HTTP_201_CREATED)
+@router.post('/exchange', status_code=status.HTTP_202_ACCEPTED)
 async def create_exchange(exchange_data: ExchangeCreateSchema, exchserv: ExchangeService = Depends(get_exch_service)):
-    return await exchserv.create_exchange_service(exchange_data)
+    return await exchserv.create_task_exchange_saga(exchange_data)
 
 
 @router.get('/exchange', status_code=status.HTTP_200_OK)

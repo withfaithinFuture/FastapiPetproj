@@ -5,30 +5,29 @@ from datetime import timedelta
 from tenacity import retry, stop_after_attempt, wait_exponential_jitter, retry_if_exception_type
 from src.client.utils import check_status
 from src.services.core.exceptions import UnavailableServiceError
-from src.services.schemas.exchange_schemas import SecondServiceValidationSchema
-from src.app.config import Settings
+from src.services.schemas.exchange_schemas import MarketDataerviceValidationSchema
+from src.app.config import settings
 
 
-class SecondClient:
 
-    SERVICE_NAME = Settings.SERVICE_NAME
+class MarketDataClient:
+
+    SERVICE_NAME = settings.SERVICE_NAME
+    breaker = CircuitBreaker(fail_max=3, timeout_duration=timedelta(seconds=15))
 
     def __init__(self):
-        self.settings = Settings()
-        self.client = httpx.AsyncClient(base_url=self.settings.base_second_service_url, timeout=self.settings.base_second_service_timeout)
-        self.breaker = CircuitBreaker(fail_max=3, timeout_duration=timedelta(seconds=15))
-        self.get_additional_info = self.breaker(self.get_additional_info)
-        self.create_additional_info = self.breaker(self.create_additional_info)
-        self.delete_additional_info = self.breaker(self.delete_additional_info)
+        self.settings = settings
+        self.client = httpx.AsyncClient(base_url=self.settings.base_market_data_service_url, timeout=self.settings.base_market_data_service_timeout)
 
 
+    @breaker
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential_jitter(1, max=5),
         retry=retry_if_exception_type(UnavailableServiceError),
         reraise=True
     )
-    async def get_additional_info(self, exchange_name: str) -> SecondServiceValidationSchema:
+    async def get_additional_info(self, exchange_name: str) -> MarketDataerviceValidationSchema:
         endpoint_url = f"/exchange/{exchange_name}"
 
         response = await self.client.get(url=endpoint_url)
@@ -37,13 +36,14 @@ class SecondClient:
         return ujson.loads(response.text)
 
 
+    @breaker
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential_jitter(1, max=5),
         retry=retry_if_exception_type(UnavailableServiceError),
         reraise=True
     )
-    async def create_additional_info(self, exchange_name: str) -> SecondServiceValidationSchema:
+    async def create_additional_info(self, exchange_name: str) -> MarketDataerviceValidationSchema:
         endpoint_url = f"/exchange/{exchange_name}"
 
         response = await self.client.post(url=endpoint_url)
@@ -52,6 +52,7 @@ class SecondClient:
         return ujson.loads(response.text)
 
 
+    @breaker
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential_jitter(1, max=5),

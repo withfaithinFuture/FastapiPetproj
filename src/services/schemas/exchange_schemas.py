@@ -7,7 +7,7 @@ letters = r'^[A-Za-zА-Яа-яЁё0-9\s\-]+$'
 class ExchangeCreateSchema(BaseModel):
     owner: ExchangeOwnerSchema
     exchange_name: str = Field(min_length=2, pattern=letters)
-    work_in_Russia: bool
+    work_in_russia: bool
     volume: float
 
     class Config:
@@ -16,11 +16,11 @@ class ExchangeCreateSchema(BaseModel):
 
 class ExchangeUpdateSchema(BaseModel):
     exchange_name: None | str = Field(min_length=2, pattern=letters)
-    work_in_Russia: None | bool
+    work_in_russia: None | bool
     volume: None | float
 
 
-class SecondServiceValidationSchema(BaseModel):
+class MarketDataerviceValidationSchema(BaseModel):
     trust_score: int = Field(lt=11)
     btc_price: float
     eth_price: float
@@ -30,7 +30,7 @@ class SecondServiceValidationSchema(BaseModel):
 class ExchangeResponseSchema(BaseModel):
     owner: ExchangeOwnerSchema
     exchange_name: str = Field(min_length=2, pattern=letters)
-    work_in_Russia: bool
+    work_in_russia: bool
     volume: float
     trust_score: int = Field(lt=11)
     btc_price: float

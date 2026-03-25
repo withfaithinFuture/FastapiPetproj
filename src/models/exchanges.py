@@ -10,8 +10,8 @@ class Exchange(Base):
     __tablename__ = 'exchanges'
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     owner_id: Mapped[UUID] = mapped_column(ForeignKey('exchange_owners.id', ondelete='CASCADE'), unique=True, default=uuid4)
-    exchange_name: Mapped[str] = mapped_column(sa.String())
-    work_in_Russia: Mapped[bool] = mapped_column(sa.Boolean())
+    exchange_name: Mapped[str] = mapped_column(sa.String(), unique=True)
+    work_in_russia: Mapped[bool] = mapped_column(sa.Boolean())
     volume: Mapped[float] = mapped_column(sa.Float())
     trust_score: Mapped[int | None] = mapped_column(sa.Integer())
     btc_price: Mapped[float | None] = mapped_column(sa.Float())

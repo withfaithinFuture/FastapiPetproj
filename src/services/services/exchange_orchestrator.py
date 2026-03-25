@@ -3,11 +3,11 @@ import ujson
 from redis.asyncio import Redis
 from src.models.exchanges import SagaStatus
 from src.services.schemas.exchange_schemas import ExchangeResponseSchema, ExchangeCreateSchema, \
-    SecondServiceValidationSchema
+    MarketDataerviceValidationSchema
 from src.services.core.exceptions import SagaTransactionError, LocalDBError
 from src.models.exchange_owners import Owner
 from src.models.exchanges import Exchange
-from src.client.market_data_client import SecondClient
+from src.client.market_data_client import MarketDataClient
 from src.services.repositories.exchanges_repo import ExchangesOwnersRepository
 
 
@@ -15,9 +15,9 @@ logger_saga = logging.getLogger("saga_orch")
 
 class ExchangeOrchestratorService:
 
-    def __init__(self, exchange_repo: ExchangesOwnersRepository, second_client: SecondClient, redis: Redis):
+    def __init__(self, exchange_repo: ExchangesOwnersRepository, market_data_client: MarketDataClient, redis: Redis):
         self.exchange_repo = exchange_repo
-        self.market_data_client = second_client
+        self.market_data_client = market_data_client
         self.redis = redis
 
 
@@ -31,31 +31,41 @@ class ExchangeOrchestratorService:
         if existing_exchange:
             if existing_exchange.status == SagaStatus.FINISHED:
                 logger_saga.info(f"Биржа {exchange_dict['exchange_name']} уже создана сагой")
-                ExchangeResponseSchema.model_validate(existing_exchange)
+                return ExchangeResponseSchema.model_validate(existing_exchange)
 
+            if existing_exchange.status == SagaStatus.PENDING:
+                raise LocalDBError(object_type="Exchange", object_name=exchange_dict['exchange_name'])
 
-        owner = Owner(**owner_dict)
-        exchange = Exchange(**exchange_dict)
-        exchange.owner = owner
-        exchange.status = SagaStatus.PENDING
+            elif existing_exchange.status == SagaStatus.FAILED:
+                exchange = existing_exchange
+                exchange.status = SagaStatus.PENDING
 
-        try:
-            await self.exchange_repo.create_exchange(owner=owner, exchange=exchange)
-            await self.exchange_repo.session.commit()
-            exchange.status = SagaStatus.ACTIVE
+                await self.exchange_repo.update_object(exchange)
+                await self.exchange_repo.session.commit()
 
-            logger_saga.info(f"Сага - успешная локальная транза, биржа - {exchange_dict['exchange_name']}")
+        else:
+            owner = Owner(**owner_dict)
+            exchange = Exchange(**exchange_dict)
+            exchange.owner = owner
+            exchange.status = SagaStatus.PENDING
 
-        except Exception as e:
-            logger_saga.error(f"Сбой бд при начале саги: {e}")
-            raise LocalDBError(object_type="Exchange", object_name=exchange_dict['exchange_name'])
+            try:
+                await self.exchange_repo.create_exchange(owner=owner, exchange=exchange)
+                await self.exchange_repo.session.commit()
+                exchange.status = SagaStatus.ACTIVE
+
+                logger_saga.info(f"Сага - успешная локальная транза, биржа - {exchange_dict['exchange_name']}")
+
+            except Exception as e:
+                logger_saga.error(f"Сбой бд при начале саги: {e}")
+                raise LocalDBError(object_type="Exchange", object_name=exchange_dict['exchange_name'])
 
 
         try:
             logger_saga.info(f"Сага - транзакция во 2 сервис-клиент")
             additional_exchange_data_dict = await self.market_data_client.create_additional_info(exchange_name=exchange_dict['exchange_name'])
-            additional_exchange_data = SecondServiceValidationSchema.model_validate(additional_exchange_data_dict)
-            logger_saga.info("2 сервис ответил успешно -> фикс транзакции")
+            additional_exchange_data = MarketDataerviceValidationSchema.model_validate(additional_exchange_data_dict)
+            logger_saga.info("2 сервис ответил успешно")
 
         except Exception as e:
             logger_saga.error("Сага - ошибка 2 сервиса, откатываемся")
@@ -75,6 +85,8 @@ class ExchangeOrchestratorService:
 
             await self.exchange_repo.update_object(exchange)
             await self.exchange_repo.session.commit()
+
+            logger_saga.info(f"Сага успешно завершена для {exchange_dict['exchange_name']}")
 
         except Exception as e:
             logger_saga.info(f"Локальная бд упала при сохранении: {e}")

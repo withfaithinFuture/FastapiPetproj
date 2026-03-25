@@ -1,15 +1,14 @@
 import ujson
+from arq import ArqRedis
 from sqlalchemy.ext.asyncio import AsyncSession
-import json
 import logging
 from uuid import UUID
 from redis.asyncio import Redis
-from services.services.exchange_orchestrator import ExchangeOrchestratorService
-from src.client.market_data_client import SecondClient
+from src.client.market_data_client import MarketDataClient
 from src.services.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema
 from src.services.core.exceptions import NotFoundError, NotFoundByNameError
 from src.services.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeUpdateSchema, \
-    ExchangeOwnerSchema, ExchangeResponseSchema, SecondServiceValidationSchema
+    ExchangeOwnerSchema, ExchangeResponseSchema, MarketDataerviceValidationSchema
 from src.services.repositories.exchanges_repo import ExchangesOwnersRepository as exch_rep
 
 
@@ -17,19 +16,31 @@ logger_exchange = logging.getLogger("services.exchange")
 
 class ExchangeService:
 
-    def __init__(self, session: AsyncSession, redis: Redis, second_service_client: SecondClient, exchange_key: str):
+    def __init__(self, session: AsyncSession, redis: Redis, second_service_client: MarketDataClient, exchange_key: str, arq_pool: ArqRedis):
         self.session = session
         self.exch_rep = exch_rep(self.session)
         self.redis = redis
         self.second_service_client = second_service_client
         self.exchange_key = exchange_key
-        self.orchestrator = ExchangeOrchestratorService(exchange_repo=self.exch_rep, second_client=self.second_service_client, redis=self.redis)
+        self.arq_pool = arq_pool
 
 
-    async def create_exchange_service(self, exchange_data: ExchangeCreateSchema) -> ExchangeResponseSchema:
+    async def create_task_exchange_saga(self, exchange_data: ExchangeCreateSchema) -> dict:
+        exchange_dict = exchange_data.model_dump(exclude='owner')
+        owner_dict = exchange_data.owner.model_dump()
 
-        return await self.orchestrator.create_exchange_with_saga(exchange_data=exchange_data, exchange_key=self.exchange_key)
+        new_job = await self.arq_pool.enqueue_job(
+            'run_create_exchange_saga',
+            exchange_dict,
+            owner_dict,
+            self.exchange_key
+        )
 
+        return {
+            "message": "Заявка на создание биржи принята",
+            "job_id": new_job.job_id,
+            "status": "PENDING"
+        }
 
 
     async def get_exchanges_info_service(self) -> list[ExchangeResponseSchema]:
@@ -38,13 +49,13 @@ class ExchangeService:
         cached_data = await self.redis.get(self.exchange_key)
         if cached_data:
             logger_exchange.info("Данные бирж получены из Redis")
-            exch_data = json.loads(cached_data)
+            exch_data = ujson.loads(cached_data)
             return [ExchangeResponseSchema.model_validate(exch) for exch in exch_data]
 
         result_models = await self.exch_rep.get_exchanges_info()
         exchanges_schemas = [ExchangeResponseSchema.model_validate(exchange) for exchange in result_models]
         exch_data = [schema.model_dump() for schema in exchanges_schemas]
-        json_data = json.dumps(exch_data, default=str)
+        json_data = ujson.dumps(exch_data)
 
         await self.redis.set(self.exchange_key, json_data, ex=3600)
         logger_exchange.info(f"Получено бирж: {len(exchanges_schemas)}")
@@ -59,27 +70,17 @@ class ExchangeService:
         cached_data = await self.redis.get(exchange_key)
         if cached_data:
             logger_exchange.info("Данные биржи получены из Redis")
-            old_data_dict = json.loads(cached_data)
+            result_model = ujson.loads(cached_data)
+            return ExchangeResponseSchema.model_validate(result_model)
 
-        else:
-            result_model = await self.exch_rep.get_exchange_by_name(exchange_name=exchange_name)
+        result_model = await self.exch_rep.get_exchange_by_name(exchange_name=exchange_name)
+        if result_model is None:
+            logger_exchange.warning(f"Биржа не найдена в БД: {exchange_name}")
+            raise NotFoundByNameError(exchange_name, 'Exchange')
 
-            if result_model is None:
-                logger_exchange.warning(f"Биржа не найдена: {exchange_name}")
-                raise NotFoundByNameError(exchange_name, 'Exchange')
-
-            old_data_dict = ExchangeResponseSchema.model_validate(result_model).model_dump()
-            json_data = json.dumps(old_data_dict, default=str)
-
-            await self.redis.set(exchange_key, json_data, ex=3600)
-
-        fresh_additional_data_dict = await self.second_service_client.get_additional_info(exchange_name=exchange_name)
-        fresh_additional_data = SecondServiceValidationSchema.model_validate(fresh_additional_data_dict)
-
-        new_exchange_model = old_data_dict | fresh_additional_data.model_dump()
         logger_exchange.info(f"Биржа найдена: name={exchange_name}")
 
-        return ExchangeResponseSchema(**new_exchange_model)
+        return ExchangeResponseSchema.model_validate(result_model)
 
 
     async def update_exchange_info_service(self, exchange_id: UUID, update_info: ExchangeUpdateSchema) -> ExchangeCreateSchema | None:
