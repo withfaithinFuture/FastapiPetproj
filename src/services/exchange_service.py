@@ -4,12 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 from uuid import UUID
 from redis.asyncio import Redis
+from src.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema, ExchangeOwnerSchema
+from src.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeResponseSchema, ExchangeUpdateSchema
 from src.client.market_data_client import MarketDataClient
-from src.services.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema
-from src.services.core.exceptions import NotFoundError, NotFoundByNameError
-from src.services.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeUpdateSchema, \
-    ExchangeOwnerSchema, ExchangeResponseSchema, MarketDataerviceValidationSchema
-from src.services.repositories.exchanges_repo import ExchangesOwnersRepository as exch_rep
+from src.core.exceptions import NotFoundError, NotFoundByNameError
+from src.repositories.exchanges_repo import ExchangesOwnersRepository as exch_rep
 
 
 logger_exchange = logging.getLogger("services.exchange")

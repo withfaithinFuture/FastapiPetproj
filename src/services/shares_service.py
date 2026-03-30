@@ -1,16 +1,15 @@
 import json
 import logging
 from uuid import UUID
-
 import ujson
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.services.schemas.shares_users_schemas import UserSchema, UserSchemaUpdate
-from src.services.core.exceptions import NotFoundError
+from src.core.exceptions import NotFoundError
+from src.schemas.shares_schemas import SharesSchemaUpdate
+from src.schemas.shares_users_schemas import UserSchema, UserSchemaUpdate
 from src.models.shares import Share
 from src.models.users import User
-from src.services.repositories.shares_repo import UserSharesRepository as user_rep
-from src.services.schemas.shares_schemas import SharesSchemaUpdate
+from src.repositories.shares_repo import UserSharesRepository as user_rep
 
 
 logger_shares = logging.getLogger("services.shares")

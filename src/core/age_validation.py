@@ -1,6 +1,6 @@
 import datetime as dt
 from dateutil.relativedelta import relativedelta
-from src.services.core.exceptions import AgeMinorError, FutureDateError
+from src.core.exceptions import AgeMinorError, FutureDateError
 
 
 def validate_age(bd_date: dt.date) -> None:

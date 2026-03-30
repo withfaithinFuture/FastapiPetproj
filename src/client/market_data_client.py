@@ -3,9 +3,9 @@ import ujson
 from aiobreaker import CircuitBreaker
 from datetime import timedelta
 from tenacity import retry, stop_after_attempt, wait_exponential_jitter, retry_if_exception_type
+from src.schemas.exchange_schemas import MarketDataerviceValidationSchema
 from src.client.utils import check_status
-from src.services.core.exceptions import UnavailableServiceError
-from src.services.schemas.exchange_schemas import MarketDataerviceValidationSchema
+from src.core.exceptions import UnavailableServiceError
 from src.app.config import settings
 
 
@@ -63,10 +63,6 @@ class MarketDataClient:
         endpoint_url = f"/exchange/{exchange_name}"
 
         response = await self.client.delete(url=endpoint_url)
-
-        if response.status_code == 404:
-            return True
-
         check_status(response=response, object_name=exchange_name, object_type=self.SERVICE_NAME)
 
         return True

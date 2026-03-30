@@ -1,10 +1,9 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
-from src.services.core.exceptions import NotFoundError
-from src.services.schemas.player_schemas import PlayerSchemaUpdate
-from src.services.schemas.club_schemas import ClubSchemaUpdate
-from src.services.schemas.club_schemas import ClubSchema
-from src.services.services.club_service import ClubService
+from src.schemas.club_schemas import ClubSchemaUpdate
+from src.schemas.club_schemas import ClubSchema
+from src.schemas.player_schemas import PlayerSchemaUpdate
+from src.services.club_service import ClubService
 from src.app.dependencies import get_club_service
 
 

@@ -1,10 +1,10 @@
 from arq.connections import RedisSettings
 from redis.asyncio import Redis
-from src.services.db.db import new_session
-from src.services.repositories.exchanges_repo import ExchangesOwnersRepository
-from src.services.services.exchange_orchestrator import ExchangeOrchestratorService
-from src.services.schemas.exchange_owners_schemas import ExchangeOwnerSchema
-from src.services.schemas.exchange_schemas import ExchangeCreateSchema
+from src.db.db import new_session
+from src.repositories.exchanges_repo import ExchangesOwnersRepository
+from src.schemas.exchange_owners_schemas import ExchangeOwnerSchema
+from src.schemas.exchange_schemas import ExchangeCreateSchema
+from src.services.exchange_orchestrator import ExchangeOrchestratorService
 from src.app.config import Settings
 from src.client.market_data_client import MarketDataClient
 

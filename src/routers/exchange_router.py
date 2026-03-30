@@ -1,11 +1,9 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
-
-from src.services.core.exceptions import NotFoundByNameError, NotFoundError
-from src.services.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema
-from src.services.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeUpdateSchema
+from src.schemas.exchange_owners_schemas import ExchangeOwnerUpdateSchema
+from src.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeUpdateSchema
+from src.services.exchange_service import ExchangeService
 from src.app.dependencies import get_exch_service
-from src.services.services.exchange_service import ExchangeService
 
 
 router = APIRouter(tags=['Actions with the exchange'])

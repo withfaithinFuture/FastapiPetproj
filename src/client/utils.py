@@ -1,5 +1,4 @@
-from src.services.core.exceptions import UnavailableServiceError, NotFoundByNameError, BadValueError, \
-    ExternalClientError
+from src.core.exceptions import UnavailableServiceError, NotFoundByNameError, ExternalClientError
 
 
 def check_status(response, object_name: str, object_type: str):

@@ -1,11 +1,9 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
-
-from src.services.core.exceptions import NotFoundError
-from src.services.schemas.shares_users_schemas import UserSchemaUpdate, UserSchema
-from src.services.schemas.shares_schemas import SharesSchemaUpdate
+from src.schemas.shares_schemas import SharesSchemaUpdate
+from src.schemas.shares_users_schemas import UserSchema, UserSchemaUpdate
+from src.services.shares_service import SharesService
 from src.app.dependencies import get_shares_service
-from services.services.shares_service import SharesService
 
 
 router = APIRouter(tags=['Actions with shares'])

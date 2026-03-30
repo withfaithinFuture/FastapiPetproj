@@ -4,15 +4,15 @@ from uuid import UUID
 import ujson
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
-from tenacity import retry, wait_exponential_jitter, stop_after_attempt, retry_if_exception, retry_if_exception_type
-from src.services.core.exceptions import CacheNotSavedError
-from src.services.core.exceptions import NotFoundError
-from src.services.schemas.player_schemas import PlayerSchemaUpdate
+from tenacity import retry, wait_exponential_jitter, stop_after_attempt, retry_if_exception_type
+from src.core.exceptions import CacheNotSavedError
+from src.core.exceptions import NotFoundError
+from src.schemas.player_schemas import PlayerSchemaUpdate
 from src.models.football_players import Player
 from src.models.clubs import Club
-from src.services.schemas.club_schemas import ClubSchema, ClubSchemaUpdate, PlayerSchema
-from src.services.repositories.clubs_repo import ClubFootballersRepository as club_rep
-from redis.exceptions import ConnectionError, TimeoutError, RedisError
+from src.schemas.club_schemas import ClubSchema, ClubSchemaUpdate, PlayerSchema
+from src.repositories.clubs_repo import ClubFootballersRepository as club_rep
+from redis.exceptions import ConnectionError, TimeoutError
 
 
 logger_club = logging.getLogger('services.clubs')

@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fastapi.responses import UJSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from src.app.dependencies import redis_client
 from src.routers.shares_router import router as shares_router

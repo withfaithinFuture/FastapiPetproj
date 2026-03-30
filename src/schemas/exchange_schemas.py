@@ -1,5 +1,5 @@
 from pydantic import Field, BaseModel
-from src.services.schemas.exchange_owners_schemas import ExchangeOwnerSchema
+from src.schemas.exchange_owners_schemas import ExchangeOwnerSchema
 
 
 letters = r'^[A-Za-zА-Яа-яЁё0-9\s\-]+$'

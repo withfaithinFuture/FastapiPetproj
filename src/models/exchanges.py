@@ -3,7 +3,7 @@ from sqlalchemy import ForeignKey
 from uuid import UUID, uuid4
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.enums.saga_enums import SagaStatus
-from src.services.db.base_service import Base
+from src.db.base_service import Base
 
 
 class Exchange(Base):

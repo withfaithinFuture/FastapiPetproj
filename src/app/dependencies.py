@@ -3,11 +3,11 @@ from arq.connections import RedisSettings, ArqRedis
 from fastapi import Depends
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.services.services.club_service import ClubService
-from src.services.services.exchange_service import ExchangeService
+from src.services.club_service import ClubService
+from src.services.exchange_service import ExchangeService
+from src.services.shares_service import SharesService
 from src.client.market_data_client import MarketDataClient
-from src.services.services.shares_service import SharesService
-from src.services.db.db import get_session, settings
+from src.db.db import get_session, settings
 
 
 redis_client = Redis.from_url(settings.redis_url, decode_responses=True)
