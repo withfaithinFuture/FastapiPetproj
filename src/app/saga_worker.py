@@ -1,15 +1,12 @@
 from arq.connections import RedisSettings
 from redis.asyncio import Redis
+from src.services.exchange_service import ExchangeService
 from src.db.db import new_session
-from src.repositories.exchanges_repo import ExchangesOwnersRepository
 from src.schemas.exchange_owners_schemas import ExchangeOwnerSchema
 from src.schemas.exchange_schemas import ExchangeCreateSchema
-from src.services.exchange_orchestrator import ExchangeOrchestratorService
-from src.app.config import Settings
+from src.app.config import settings
 from src.client.market_data_client import MarketDataClient
 
-
-settings = Settings()
 
 async def startup_worker(ctx):
     ctx['redis_client'] = Redis.from_url(settings.redis_url, decode_responses=True)
@@ -31,12 +28,11 @@ async def run_create_exchange_saga(ctx, exchange_dict: dict, owner_dict: dict, e
     exchange_data = ExchangeCreateSchema(**exchange_dict, owner=owner_data)
 
     async with new_session() as session:
-        exchange_repo = ExchangesOwnersRepository(session=session)
-
-        orchestrator = ExchangeOrchestratorService(
-            exchange_repo=exchange_repo,
+        orchestrator = ExchangeService(
+            session=session,
+            redis=ctx['redis_client'],
             market_data_client=ctx['market_data_service_client'],
-            redis=ctx['redis_client']
+            exchange_key=exchange_key
         )
 
         result = await orchestrator.create_exchange_with_saga(exchange_data=exchange_data, exchange_key=exchange_key)

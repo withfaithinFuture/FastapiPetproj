@@ -19,4 +19,4 @@ class Exchange(Base):
     sol_price: Mapped[float | None] = mapped_column(sa.Float())
     status: Mapped[SagaStatus] = mapped_column(sa.Enum(SagaStatus, native_enum=False), default=SagaStatus.PENDING, nullable=False)
 
-    owner = relationship('Owner', back_populates='exchange')
+    owner = relationship('Owner', back_populates='exchange', lazy='selectin')
