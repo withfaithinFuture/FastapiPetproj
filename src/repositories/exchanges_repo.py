@@ -42,22 +42,10 @@ class ExchangesOwnersRepository:
         return result.scalar_one_or_none()
 
 
-    async def update_exchange_info(self, exchange_id: UUID) -> Exchange | None:
-        query = select(Exchange).where(exchange_id == Exchange.id).options(selectinload(Exchange.owner)).with_for_update(skip_locked=True)
-        result = await self.session.execute(query)
-        return result.scalar_one_or_none()
-
-
     async def update_object(self, upd_object):
         await self.session.flush()
         await self.session.refresh(upd_object)
         return upd_object
-
-
-    async def update_owner_info(self, update_id: UUID) -> Owner | None:
-        query = select(Owner).where(update_id == Owner.id).with_for_update(skip_locked=True)
-        result = await self.session.execute(query)
-        return result.scalar_one_or_none()
 
 
     async def get_exchange_by_id(self, exchange_id: UUID) -> Exchange | None:

@@ -102,7 +102,7 @@ class ExchangeService:
         logger_exchange.info(f"Обновление биржи: ID={exchange_id}")
 
         update_dict = update_info.model_dump(exclude_none=True, mode='json')
-        existing_exchange = await self.exch_rep.update_exchange_info(exchange_id)
+        existing_exchange = await self.exch_rep.get_exchange_by_id(exchange_id)
 
         if existing_exchange is None:
             logger_exchange.warning(f"Биржа не найдена: ID={exchange_id}")
@@ -147,7 +147,7 @@ class ExchangeService:
         logger_exchange.info(f"Обновление владельца: ID={owner_id}")
 
         update_info_dict = update_info.model_dump(exclude_none=True, mode='json')
-        exist_owner = await self.exch_rep.update_owner_info(owner_id)
+        exist_owner = await self.exch_rep.get_owner_by_id(owner_id)
 
         if exist_owner is None:
             logger_exchange.warning(f"Владелец не найден: ID={owner_id}")
@@ -249,7 +249,7 @@ class ExchangeService:
         final_exchange = await self.get_final_exchange_service(additional_exchange_data=additional_info,
                                                                exchange=local_exchange, exchange_name=exchange_name)
 
-        await self.update_cache_service(exchange_key=self.exchange_key, exchange=final_exchange)
+        await self.update_cache_service(exchange=final_exchange)
 
         logger_exchange.info(f"сага завершена, у биржи {exchange_name} статус - FINISHED")
         return ExchangeResponseSchema.model_validate(final_exchange)
