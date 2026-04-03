@@ -1,11 +1,18 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fastapi.responses import UJSONResponse
 from starlette.middleware.cors import CORSMiddleware
+from src.app.dependencies import redis_client
 from src.routers.shares_router import router as shares_router
 from src.routers.exchange_router import router as exchange_router
 from src.routers.clubs_router import router as clubs_router
 from src.routers.healthcheck_router import router as healthcheck_router
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+
+    await redis_client.close()
 
 
 def get_app() -> FastAPI:
@@ -19,7 +26,7 @@ def get_app() -> FastAPI:
     app = FastAPI(
         docs_url='/docs',
         openapi_url='/openapi.json',
-        default_response_class=UJSONResponse,
+        lifespan=lifespan
     )
 
     app.add_middleware(
