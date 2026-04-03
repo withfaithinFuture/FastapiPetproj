@@ -13,18 +13,19 @@ from src.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeResponseS
 from src.client.market_data_client import MarketDataClient
 from src.core.exceptions import NotFoundError, NotFoundByNameError, LocalDBError, SagaTransactionError
 from src.repositories.exchanges_repo import ExchangesOwnersRepository as exch_rep
+from src.app.config import settings
 
 
 logger_exchange = logging.getLogger("services.exchange")
 
 class ExchangeService:
 
-    def __init__(self, session: AsyncSession, redis: Redis, market_data_client: MarketDataClient, exchange_key: str, arq_pool: ArqRedis = None):
+    def __init__(self, session: AsyncSession, redis: Redis, market_data_client: MarketDataClient, arq_pool: ArqRedis = None):
         self.session = session
         self.exch_rep = exch_rep(self.session)
         self.redis = redis
         self.market_data_client = market_data_client
-        self.exchange_key = exchange_key
+        self.exchange_key = settings.SERVICE_EXCHANGE_KEY
         self.arq_pool = arq_pool
 
 
@@ -190,7 +191,7 @@ class ExchangeService:
         return ExchangeOwnerSchema.model_validate(exist_owner)
 
 
-    async def delete_exchange_by_id(self, exchange_id: UUID):
+    async def delete_exchange_by_id_service(self, exchange_id: UUID):
         exchange_by_id = await self.exch_rep.get_exchange_by_id(exchange_id)
 
         if exchange_by_id is None:
@@ -206,7 +207,7 @@ class ExchangeService:
         return True
 
 
-    async def delete_owner_by_id(self, owner_id: UUID):
+    async def delete_owner_by_id_service(self, owner_id: UUID):
         owner_by_id = await self.exch_rep.get_owner_by_id(owner_id)
 
         if owner_by_id is None:
@@ -222,7 +223,7 @@ class ExchangeService:
         return True
 
 
-    async def create_exchange_with_saga(self, exchange_data: ExchangeCreateSchema, exchange_key: str):
+    async def create_exchange_with_saga_service(self, exchange_data: ExchangeCreateSchema):
         logger_exchange.info("Сага - Создание биржи")
 
         owner_dict = exchange_data.owner.model_dump()
@@ -238,19 +239,23 @@ class ExchangeService:
             await self.exch_rep.session.commit()
 
         else:
-            local_exchange = await self.create_local_exchange(owner_dict=owner_dict, exchange_dict=exchange_dict, exchange_name=exchange_name)
+            local_exchange = await self.create_local_exchange_service(owner_dict=owner_dict,
+                                                                      exchange_dict=exchange_dict,
+                                                                      exchange_name=exchange_name)
 
-        additional_info = await self.get_market_data_client_info(exchange=local_exchange, exchange_name=exchange_name)
+        additional_info = await self.get_market_data_client_info_service(exchange=local_exchange,
+                                                                         exchange_name=exchange_name)
 
-        final_exchange = await self.get_final_exchange(additional_exchange_data=additional_info, exchange=local_exchange, exchange_name=exchange_name)
+        final_exchange = await self.get_final_exchange_service(additional_exchange_data=additional_info,
+                                                               exchange=local_exchange, exchange_name=exchange_name)
 
-        await self.update_cache(exchange_key=exchange_key, exchange=final_exchange)
+        await self.update_cache_service(exchange_key=self.exchange_key, exchange=final_exchange)
 
         logger_exchange.info(f"сага завершена, у биржи {exchange_name} статус - FINISHED")
         return ExchangeResponseSchema.model_validate(final_exchange)
     
     
-    async def create_local_exchange(self, owner_dict: dict, exchange_dict: dict, exchange_name: str):
+    async def create_local_exchange_service(self, owner_dict: dict, exchange_dict: dict, exchange_name: str):
         owner = Owner(**owner_dict)
         exchange = Exchange(**exchange_dict)
         exchange.owner = owner
@@ -269,7 +274,7 @@ class ExchangeService:
             raise LocalDBError(object_type="Exchange", object_name=exchange_name)
 
 
-    async def get_market_data_client_info(self, exchange: Exchange, exchange_name: str):
+    async def get_market_data_client_info_service(self, exchange: Exchange, exchange_name: str):
         try:
             logger_exchange.info(f"Сага - транзакция во 2 сервис-клиент")
 
@@ -290,7 +295,7 @@ class ExchangeService:
             raise SagaTransactionError(service_name="Market_Data_Service")
 
 
-    async def get_final_exchange(self, additional_exchange_data: MarketDataerviceValidationSchema, exchange: Exchange, exchange_name: str):
+    async def get_final_exchange_service(self, additional_exchange_data: MarketDataerviceValidationSchema, exchange: Exchange, exchange_name: str):
         try:
             for key, value in additional_exchange_data.model_dump().items():
                 if hasattr(exchange, key):
@@ -312,9 +317,9 @@ class ExchangeService:
             raise LocalDBError(object_type="Exchange", object_name=exchange_name)
 
 
-    async def update_cache(self, exchange_key: str, exchange: Exchange):
+    async def update_cache_service(self, exchange: Exchange):
         try:
-            exchanges_cache = await self.redis.get(exchange_key)
+            exchanges_cache = await self.redis.get(self.exchange_key)
             if exchanges_cache:
                 exchanges_list = ujson.loads(exchanges_cache)
                 new_exchange_schema = ExchangeResponseSchema.model_validate(exchange)
@@ -322,9 +327,9 @@ class ExchangeService:
 
                 exchanges_list.append(new_exchange_dict)
 
-                await self.redis.set(exchange_key, ujson.dumps(exchanges_list), ex=3600)
+                await self.redis.set(self.exchange_key, ujson.dumps(exchanges_list), ex=3600)
                 logger_exchange.info("Новая биржа добавлена в кэш")
 
         except Exception as e:
             logger_exchange.error(f"кэш в саге не обновился из-за ошибки: {e}")
-            await self.redis.delete(exchange_key)
+            await self.redis.delete(self.exchange_key)

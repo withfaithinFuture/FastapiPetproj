@@ -4,16 +4,13 @@ from uuid import UUID
 import ujson
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
-from tenacity import retry, wait_exponential_jitter, stop_after_attempt, retry_if_exception_type
-from src.core.exceptions import CacheNotSavedError
 from src.core.exceptions import NotFoundError
 from src.schemas.player_schemas import PlayerSchemaUpdate
 from src.models.football_players import Player
 from src.models.clubs import Club
 from src.schemas.club_schemas import ClubSchema, ClubSchemaUpdate, PlayerSchema
 from src.repositories.clubs_repo import ClubFootballersRepository as club_rep
-from redis.exceptions import ConnectionError, TimeoutError
-
+from src.services.cache_service import CacheService
 
 logger_club = logging.getLogger('services.clubs')
 
@@ -25,21 +22,6 @@ class ClubService:
         self.club_rep = club_rep(self.session)
         self.redis = redis
         self.clubs_key = clubs_key
-
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential_jitter(1, max=3),
-        retry=retry_if_exception_type((CacheNotSavedError, ConnectionError, TimeoutError)),
-        reraise=True
-    )
-    async def set_cache_retry(self, key: str, value: str, expire: int):
-        await self.redis.set(key=key, value=value, ex=expire)
-        saved_cache_check = await self.redis.exists(key)
-        if not saved_cache_check:
-            logger_club.warning(f"Данные с ключом {key} не сохранились")
-            raise CacheNotSavedError()
-
-        logger_club.info("Данные занесены в кеш после ретраев")
 
 
     async def create_club_service(self, club_data: ClubSchema) -> ClubSchema:
@@ -66,7 +48,7 @@ class ClubService:
                 clubs_data.append(new_club_schema.model_dump(mode='json'))
                 json_data = ujson.dumps(clubs_data)
 
-                await self.set_cache_retry(key=self.clubs_key, value=json_data, expire=3600)
+                await CacheService.set_cache_retry(key=self.clubs_key, value=json_data, expire=3600)
                 logger_club.info("Новый клуб добавлен в имеющийся кэш")
 
         except Exception as e:
@@ -91,7 +73,7 @@ class ClubService:
         clubs_schemas = [ClubSchema.model_validate(club) for club in clubs_models]
         clubs_list = [club.model_dump(mode='json') for club in clubs_schemas]
         json_data = ujson.dumps(clubs_list)
-        await self.set_cache_retry(self.clubs_key, json_data, 3600)
+        await CacheService.set_cache_retry(self.clubs_key, json_data, 3600)
         logger_club.info(f"Получено клубов: {len(clubs_schemas)}")
         return clubs_schemas
 
@@ -122,7 +104,7 @@ class ClubService:
                         clubs[i].update(update_sch_dict)
                         break
 
-                await self.set_cache_retry(key=self.clubs_key, value=json.dumps(clubs, default=str), expire=3600)
+                await CacheService.set_cache_retry(key=self.clubs_key, value=json.dumps(clubs, default=str), expire=3600)
                 logger_club.info(f"Кэш клубов успешно обновлен")
 
         except Exception as e:
@@ -149,18 +131,25 @@ class ClubService:
                 setattr(existing_player, key, value)
 
         await self.club_rep.update_info(existing_player)
+        await self.update_players_cache_info_service(player_id=player_id, update_dict=update_sch_dict)
 
+        logger_club.info(f"Игрок обновлен: ID={player_id}")
+
+        return PlayerSchema.model_validate(existing_player)
+
+
+    async def update_players_cache_info_service(self, player_id:UUID, update_dict: dict):
         try:
-            cached_data = self.redis.get(self.clubs_key)
+            cached_data = await self.redis.get(self.clubs_key)
             if cached_data:
                 clubs_data = ujson.loads(cached_data)
                 updated = False
 
                 for club in clubs_data:
-                    players = club.get('players', [])
-                    for i, players in enumerate(players):
-                        if players.get('id') == str(player_id):
-                            players[i].update(update_sch_dict)
+                    players_list = club.get('players', [])
+                    for i, player in enumerate(players_list):
+                        if player.get('id') == str(player_id):
+                            players_list[i].update(update_dict)
                             updated = True
                             break
 
@@ -169,7 +158,7 @@ class ClubService:
 
                 if updated:
                     json_data = ujson.dumps(clubs_data)
-                    await self.set_cache_retry(key=self.clubs_key, value=json_data, expire=3600)
+                    await CacheService.set_cache_retry(key=self.clubs_key, value=json_data, expire=3600)
                     logger_club.info("Данные игрока обновлены в кэше")
 
                 else:
@@ -178,13 +167,8 @@ class ClubService:
         except Exception as e:
             await self.redis.delete(self.clubs_key)
 
-        logger_club.info(f"Игрок обновлен: ID={player_id}")
 
-        return PlayerSchema.model_validate(existing_player)
-
-
-
-    async def delete_club_by_id(self, club_id: UUID):
+    async def delete_club_by_id_service(self, club_id: UUID):
         logger_club.info(f"Удаление клуба: ID={club_id}")
         club_by_id = await self.club_rep.get_club_with_players(club_id)
 
@@ -200,7 +184,7 @@ class ClubService:
         return True
 
 
-    async def delete_player_by_id(self, player_id: UUID):
+    async def delete_player_by_id_service(self, player_id: UUID):
         logger_club.info(f"Удаление футболиста: ID={player_id}")
         player_by_id = await self.club_rep.get_player_by_id(player_id)
 

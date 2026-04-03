@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     base_market_data_service_timeout: float = Field(env='BASE_MARKET_DATA_SERVICE_TIMEOUT')
     redis_url: str = Field(env='REDIS_URL')
     SERVICE_NAME: str = "market_data_service"
+    SERVICE_EXCHANGE_KEY: str = Field(env='SERVICE_EXCHANGE_KEY')
 
     class Config:
         env_file = Path(__file__).resolve().parent.parent.parent / ".env"

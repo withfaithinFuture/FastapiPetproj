@@ -35,9 +35,9 @@ async def update_owner(owner_id: UUID, update_data: ExchangeOwnerUpdateSchema, e
 
 @router.delete('/exchange/{exchange_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_exchange_by_id(exchange_id: UUID, exchserv: ExchangeService = Depends(get_exch_service)):
-    return await exchserv.delete_exchange_by_id(exchange_id)
+    return await exchserv.delete_exchange_by_id_service(exchange_id)
 
 
 @router.delete('/owner/{owner_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_owner_by_id(owner_id: UUID, exchserv: ExchangeService = Depends(get_exch_service)):
-    return await exchserv.delete_owner_by_id(owner_id)
+    return await exchserv.delete_owner_by_id_service(owner_id)

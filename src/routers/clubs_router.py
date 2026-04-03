@@ -31,9 +31,9 @@ async def update_players(player_id: UUID, player_update: PlayerSchemaUpdate, cls
 
 @router.delete('/clubs/{club_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_club_by_id(club_id: UUID, clsrv: ClubService = Depends(get_club_service)):
-    return await clsrv.delete_club_by_id(club_id)
+    return await clsrv.delete_club_by_id_service(club_id)
 
 
 @router.delete('/players/{player_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_player_by_id(player_id: UUID, clsrv: ClubService = Depends(get_club_service)):
-     return await clsrv.delete_player_by_id(player_id)
+     return await clsrv.delete_player_by_id_service(player_id)

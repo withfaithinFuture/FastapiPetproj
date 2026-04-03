@@ -3,6 +3,8 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from enums.saga_enums import SagaStatus
 from src.models.exchange_owners import Owner
 from src.models.exchanges import Exchange
 
@@ -30,7 +32,12 @@ class ExchangesOwnersRepository:
 
 
     async def get_exchange_by_name(self, exchange_name: str) -> Exchange | None:
-        query = select(Exchange).where(Exchange.exchange_name == exchange_name).options(selectinload(Exchange.owner))
+        query = (
+            select(Exchange)
+            .where(Exchange.exchange_name == exchange_name)
+            .options(selectinload(Exchange.owner))
+            .with_for_update(skip_locked=True)
+        )
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
