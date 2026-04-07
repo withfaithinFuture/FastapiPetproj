@@ -25,6 +25,19 @@ class ExchangesOwnersRepository:
         return exchange
 
 
+    async def get_batch_exchanges(self, status: SagaStatus, batch_size: int) -> list[Exchange]:
+        query = (
+            select(Exchange)
+            .where(Exchange.status == status)
+            .limit(batch_size)
+            .options(selectinload(Exchange.owner))
+            .with_for_update(skip_locked=True)
+        )
+
+        result = await self.session.execute(query)
+        return list(result.scalars().all())
+
+
     async def get_exchanges_info(self) -> Sequence[Exchange]:
         query = select(Exchange).options(selectinload(Exchange.owner))
         result = await self.session.execute(query)

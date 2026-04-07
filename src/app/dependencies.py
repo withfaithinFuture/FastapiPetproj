@@ -3,16 +3,12 @@ from arq.connections import RedisSettings, ArqRedis
 from fastapi import Depends
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.db.redis_client import get_redis
 from src.services.club_service import ClubService
 from src.services.exchange_service import ExchangeService
 from src.services.shares_service import SharesService
 from src.client.market_data_client import MarketDataClient
 from src.db.db import get_session, settings
-
-
-redis_client = Redis.from_url(settings.redis_url, decode_responses=True)
-async def get_redis():
-    yield redis_client
 
 
 async def get_arq_pool():
@@ -27,9 +23,9 @@ def get_club_service(session: AsyncSession = Depends(get_session), redis: Redis 
     return ClubService(session, redis)
 
 
-def get_exch_service(session: AsyncSession = Depends(get_session), redis: Redis = Depends(get_redis), arq_pool: ArqRedis = Depends(get_arq_pool)) -> ExchangeService:
+def get_exch_service(session: AsyncSession = Depends(get_session), redis: Redis = Depends(get_redis)) -> ExchangeService:
     second_service = MarketDataClient()
-    return ExchangeService(session, redis, second_service, arq_pool)
+    return ExchangeService(session, redis, second_service)
 
 
 def get_shares_service(session: AsyncSession = Depends(get_session), redis: Redis = Depends(get_redis)) -> SharesService:

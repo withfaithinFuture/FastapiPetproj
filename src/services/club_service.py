@@ -4,13 +4,14 @@ from uuid import UUID
 import ujson
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.db.redis_client import set_cache_retry
 from src.core.exceptions import NotFoundError
 from src.schemas.player_schemas import PlayerSchemaUpdate
 from src.models.football_players import Player
 from src.models.clubs import Club
 from src.schemas.club_schemas import ClubSchema, ClubSchemaUpdate, PlayerSchema
 from src.repositories.clubs_repo import ClubFootballersRepository as club_rep
-from src.services.cache_service import CacheService
+
 
 logger_club = logging.getLogger('services.clubs')
 
@@ -48,7 +49,7 @@ class ClubService:
                 clubs_data.append(new_club_schema.model_dump(mode='json'))
                 json_data = ujson.dumps(clubs_data)
 
-                await CacheService.set_cache_retry(key=self.clubs_key, value=json_data, expire=3600)
+                await set_cache_retry(redis=self.redis, key=self.clubs_key, value=json_data, expire=3600)
                 logger_club.info("Новый клуб добавлен в имеющийся кэш")
 
         except Exception as e:
@@ -73,7 +74,7 @@ class ClubService:
         clubs_schemas = [ClubSchema.model_validate(club) for club in clubs_models]
         clubs_list = [club.model_dump(mode='json') for club in clubs_schemas]
         json_data = ujson.dumps(clubs_list)
-        await CacheService.set_cache_retry(self.clubs_key, json_data, 3600)
+        await set_cache_retry(redis=self.redis, key=self.clubs_key, value=json_data, expire=3600)
         logger_club.info(f"Получено клубов: {len(clubs_schemas)}")
         return clubs_schemas
 
@@ -104,7 +105,7 @@ class ClubService:
                         clubs[i].update(update_sch_dict)
                         break
 
-                await CacheService.set_cache_retry(key=self.clubs_key, value=json.dumps(clubs, default=str), expire=3600)
+                await set_cache_retry(redis=self.redis, key=self.clubs_key, value=json.dumps(clubs, default=str), expire=3600)
                 logger_club.info(f"Кэш клубов успешно обновлен")
 
         except Exception as e:
@@ -158,7 +159,7 @@ class ClubService:
 
                 if updated:
                     json_data = ujson.dumps(clubs_data)
-                    await CacheService.set_cache_retry(key=self.clubs_key, value=json_data, expire=3600)
+                    await set_cache_retry(redis=self.redis, key=self.clubs_key, value=json_data, expire=3600)
                     logger_club.info("Данные игрока обновлены в кэше")
 
                 else:

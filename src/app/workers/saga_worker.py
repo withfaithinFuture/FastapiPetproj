@@ -1,14 +1,8 @@
 from arq import cron
-from arq.connections import RedisSettings, create_pool
+from arq.connections import RedisSettings
 from redis.asyncio import Redis
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-from enums.saga_enums import SagaStatus
-from src.models.exchanges import Exchange
-from src.services.exchange_service import ExchangeService
+from app.dependencies import get_exch_service
 from src.db.db import new_session
-from src.schemas.exchange_owners_schemas import ExchangeOwnerSchema
-from src.schemas.exchange_schemas import ExchangeCreateSchema
 from src.app.config import settings
 from src.client.market_data_client import MarketDataClient
 
@@ -28,59 +22,32 @@ async def shutdown_worker(ctx):
         await ctx['redis_client'].close()
 
 
-async def run_create_exchange_saga(ctx, exchange_dict: dict, owner_dict: dict):
-    owner_data = ExchangeOwnerSchema(**owner_dict)
-    exchange_data = ExchangeCreateSchema(**exchange_dict, owner=owner_data)
-
+async def cron_pending_batch(ctx):
     async with new_session() as session:
-        orchestrator = ExchangeService(
-            session=session,
-            redis=ctx['redis_client'],
-            market_data_client=ctx['market_data_service_client']
-        )
-
-        result = await orchestrator.create_exchange_with_saga_service(exchange_data=exchange_data)
-
-        if result:
-            return result.model_dump(mode='json')
-        else:
-            return None
+        exchange_service = get_exch_service(session=session, redis=ctx['redis_client'])
+        await exchange_service.pending_batch_service()
 
 
-async def recover_stuck_sagas(ctx):
-    arq_redis = await create_pool(RedisSettings.from_dsn(settings.redis_url))
-    exchange_key = ''
+async def cron_failed_batch(ctx):
     async with new_session() as session:
-        query = (
-            select(Exchange)
-            .where(Exchange.status.in_([SagaStatus.FAILED, SagaStatus.PENDING]))
-            .options(selectinload(Exchange.owner))
-        )
-        result = await session.execute(query)
-        stuck_exchanges = result.scalars().all()
+        exchange_service = get_exch_service(session=session, redis=ctx['redis_client'])
+        await exchange_service.failed_batch_service()
 
-        for exchange in stuck_exchanges:
-            exchange_schema = ExchangeCreateSchema.model_validate(exchange)
-            exchange_dict = exchange_schema.model_dump(exclude='owner')
-            owner_dict = exchange_schema.owner.model_dump()
 
-            await arq_redis.enqueue_job(
-                'run_create_exchange_saga',
-                exchange_dict,
-                owner_dict,
-                exchange_key
-            )
-
-        await arq_redis.close()
+async def cron_active_batch(ctx):
+    async with new_session() as session:
+        exchange_service = get_exch_service(session=session, redis=ctx['redis_client'])
+        await exchange_service.active_batch_service()
 
 
 class WorkerSettings:
-    functions = [run_create_exchange_saga]
     on_startup = startup_worker
     on_shutdown = shutdown_worker
     redis_settings = RedisSettings.from_dsn(settings.redis_url)
     max_jobs = 5
 
     cron_jobs = [
-        cron('recover_stuck_sagas', minute=set(range(0, 60, 5)))
+        cron('cron_pending_batch', minute=set(range(0, 60, 1))),
+        cron('cron_failed_batch', minute=set(range(0, 60, 5))),
+        cron('cron_active_batch', minute=set(range(0, 60, 10)))
     ]

@@ -20,13 +20,12 @@ logger_exchange = logging.getLogger("services.exchange")
 
 class ExchangeService:
 
-    def __init__(self, session: AsyncSession, redis: Redis, market_data_client: MarketDataClient, arq_pool: ArqRedis = None):
+    def __init__(self, session: AsyncSession, redis: Redis, market_data_client: MarketDataClient):
         self.session = session
         self.exch_rep = exch_rep(self.session)
         self.redis = redis
         self.market_data_client = market_data_client
         self.exchange_key = settings.SERVICE_EXCHANGE_KEY
-        self.arq_pool = arq_pool
 
 
     async def create_task_exchange_saga(self, exchange_data: ExchangeCreateSchema) -> ExchangeResponseSchema | dict:
@@ -38,22 +37,23 @@ class ExchangeService:
                 logger_exchange.info(f"Биржа {exchange_name} уже создана сагой")
                 return ExchangeResponseSchema.model_validate(existing_exchange)
 
-            if existing_exchange.status == SagaStatus.PENDING:
-                raise LocalDBError(object_type="Exchange", object_name=exchange_name)
+            else:
+                return {
+                "message": "Биржа в обработке",
+                "status": existing_exchange.status
+            }
 
         exchange_dict = exchange_data.model_dump(exclude='owner')
         owner_dict = exchange_data.owner.model_dump()
+        owner = Owner(**owner_dict)
+        exchange = Exchange(**exchange_dict)
+        exchange.owner = owner
+        exchange.status = SagaStatus.PENDING
 
-        new_job = await self.arq_pool.enqueue_job(
-            'run_create_exchange_saga',
-            exchange_dict,
-            owner_dict,
-            self.exchange_key
-        )
+        await self.exch_rep.create_exchange(owner=owner, exchange=exchange)
 
         return {
             "message": "Заявка на создание биржи принята",
-            "job_id": new_job.job_id,
             "status": "PENDING"
         }
 
@@ -223,36 +223,27 @@ class ExchangeService:
         return True
 
 
-    async def create_exchange_with_saga_service(self, exchange_data: ExchangeCreateSchema):
-        logger_exchange.info("Сага - Создание биржи")
+    async def create_exchange_with_saga_service(self, exchange: Exchange):
+        exchange_name = exchange.exchange_name
+        logger_exchange.info(f"Сага - Создание биржи {exchange_name}")
 
-        owner_dict = exchange_data.owner.model_dump()
-        exchange_dict = exchange_data.model_dump(exclude='owner')
-        exchange_name = exchange_dict['exchange_name']
+        exchange.status = SagaStatus.ACTIVE
+        await self.exch_rep.update_object(exchange)
+        await self.session.commit()
 
-        existing_exchange = await self.exch_rep.get_exchange_by_name(exchange_name=exchange_name)
-        if existing_exchange and existing_exchange.status == SagaStatus.FAILED:
-            local_exchange = existing_exchange
-            local_exchange.status = SagaStatus.ACTIVE
+        try:
+            additional_info = await self.get_market_data_client_info_service(exchange=exchange, exchange_name=exchange_name)
+            final_exchange = await self.get_final_exchange_service(additional_exchange_data=additional_info, exchange=exchange, exchange_name=exchange_name)
+            await self.update_cache_service(exchange=final_exchange)
+            logger_exchange.info(f"сага завершена, у биржи {exchange_name} статус - FINISHED")
 
-            await self.exch_rep.update_object(local_exchange)
-            await self.exch_rep.session.commit()
+            return ExchangeResponseSchema.model_validate(final_exchange)
 
-        else:
-            local_exchange = await self.create_local_exchange_service(owner_dict=owner_dict,
-                                                                      exchange_dict=exchange_dict,
-                                                                      exchange_name=exchange_name)
-
-        additional_info = await self.get_market_data_client_info_service(exchange=local_exchange,
-                                                                         exchange_name=exchange_name)
-
-        final_exchange = await self.get_final_exchange_service(additional_exchange_data=additional_info,
-                                                               exchange=local_exchange, exchange_name=exchange_name)
-
-        await self.update_cache_service(exchange=final_exchange)
-
-        logger_exchange.info(f"сага завершена, у биржи {exchange_name} статус - FINISHED")
-        return ExchangeResponseSchema.model_validate(final_exchange)
+        except Exception as e:
+            logger_exchange.warning(f"Ошибка в работе саги для биржи {exchange_name} - {e}")
+            exchange.status = SagaStatus.FAILED
+            await self.exch_rep.update_object(exchange)
+            await self.session.commit()
     
     
     async def create_local_exchange_service(self, owner_dict: dict, exchange_dict: dict, exchange_name: str):
@@ -272,6 +263,30 @@ class ExchangeService:
         except Exception as e:
             logger_exchange.error(f"Сбой бд при начале саги: {e}")
             raise LocalDBError(object_type="Exchange", object_name=exchange_name)
+
+
+    async def pending_batch_service(self, batch_size: int = 5):
+        exchanges = await self.exch_rep.get_batch_exchanges(status=SagaStatus.PENDING, batch_size=batch_size)
+        if exchanges:
+            logger_exchange.info(f"Воркер взял в работу PENDING биржи - {len(exchanges)} штук")
+            for exchange in exchanges:
+                await self.create_exchange_with_saga_service(exchange)
+
+
+    async def failed_batch_service(self, batch_size: int = 5):
+        exchanges = await self.exch_rep.get_batch_exchanges(status=SagaStatus.FAILED, batch_size=batch_size)
+        if exchanges:
+            logger_exchange.info(f"Воркер взял в работу FAILED биржи - {len(exchanges)} штук")
+            for exchange in exchanges:
+                await self.create_exchange_with_saga_service(exchange)
+
+
+    async def active_batch_service(self, batch_size: int = 5):
+        exchanges = await self.exch_rep.get_batch_exchanges(status=SagaStatus.ACTIVE, batch_size=batch_size)
+        if exchanges:
+            logger_exchange.info(f"Воркер взял в работу ACTIVE биржи - {len(exchanges)} штук")
+            for exchange in exchanges:
+                await self.create_exchange_with_saga_service(exchange)
 
 
     async def get_market_data_client_info_service(self, exchange: Exchange, exchange_name: str):
