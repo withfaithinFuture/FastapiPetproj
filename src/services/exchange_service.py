@@ -244,6 +244,7 @@ class ExchangeService:
             exchange.status = SagaStatus.FAILED
             await self.exch_rep.update_object(exchange)
             await self.session.commit()
+            raise SagaTransactionError(service_name=exchange_name)
     
     
     async def create_local_exchange_service(self, owner_dict: dict, exchange_dict: dict, exchange_name: str):
