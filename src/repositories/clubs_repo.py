@@ -1,3 +1,4 @@
+from typing import Tuple, List, Any, Sequence, Optional, Union
 from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +14,7 @@ class ClubFootballersRepository:
         self.session = session
 
 
-    async def create_club(self, club: Club, players: list[Player]) -> tuple[Club, list[Player]]:
+    async def create_club(self, club: Club, players: list[Player]) -> Tuple[Club, list[Player]]:
         self.session.add(club)
         self.session.add_all(players)
         await self.session.flush()
@@ -21,28 +22,28 @@ class ClubFootballersRepository:
         return club, players
 
 
-    async def get_clubs_info(self):
+    async def get_clubs_info(self) -> List[Club]:
         result = await self.session.execute(select(Club).options(selectinload(Club.players)))
-        return result.scalars().all()
+        return list(result.scalars().all())
 
 
-    async def get_club_with_players(self, club_id: UUID) -> Club | None:
+    async def get_club_with_players(self, club_id: UUID) -> Optional[Club]:
         query = select(Club).where(Club.id == club_id).options(selectinload(Club.players)).with_for_update(skip_locked=True)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
 
-    async def get_player_by_id(self, player_id: UUID) -> Player | None:
+    async def get_player_by_id(self, player_id: UUID) -> Optional[Player]:
         query = select(Player).where(Player.id == player_id).with_for_update(skip_locked=True)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
 
-    async def update_info(self, upd_object):
+    async def update_info(self, upd_object) -> Union[Club, Player]:
         await self.session.flush()
         await self.session.refresh(upd_object)
         return upd_object
 
 
-    async def delete_club_or_player(self, delete_obj):
+    async def delete_club_or_player(self, delete_obj) -> None:
         await self.session.delete(delete_obj)

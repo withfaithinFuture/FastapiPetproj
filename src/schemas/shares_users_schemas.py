@@ -1,8 +1,8 @@
 import datetime as dt
 from typing import List
 from pydantic import Field, BaseModel, EmailStr, field_validator
-from src.services.schemas.shares_schemas import SharesSchema
-from src.services.core.age_validation import validate_age
+from src.schemas.shares_schemas import SharesSchema
+from src.core.age_validation import validate_age
 
 
 letters = r'^[A-Za-zА-Яа-яЁё0-9\s\-]+$'
