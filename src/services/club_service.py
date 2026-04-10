@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Union, Optional, List, Dict, Any, cast
 from uuid import UUID
 import ujson
 from redis.asyncio import Redis
@@ -18,7 +19,7 @@ logger_club = logging.getLogger('services.clubs')
 
 class ClubService:
 
-    def __init__(self, session: AsyncSession, redis: Redis, clubs_key = "clubs:all"):
+    def __init__(self, session: AsyncSession, redis: Redis, clubs_key: str = "clubs:all"):
         self.session = session
         self.club_rep = club_rep(self.session)
         self.redis = redis
@@ -61,7 +62,7 @@ class ClubService:
         return new_club_schema
 
 
-    async def get_clubs_info_service(self) -> list[ClubSchema]:
+    async def get_clubs_info_service(self) -> List[ClubSchema]:
         logger_club.info("Запрос информации о клубах")
 
         cached_data = await self.redis.get(self.clubs_key)
@@ -79,7 +80,7 @@ class ClubService:
         return clubs_schemas
 
 
-    async def update_clubs_info_service(self, club_id: UUID, update_sch: ClubSchemaUpdate) -> ClubSchema | None:
+    async def update_clubs_info_service(self, club_id: UUID, update_sch: ClubSchemaUpdate) -> Optional[ClubSchema]:
         logger_club.info(f"Обновление клуба: ID={club_id}")
 
         update_sch_dict = update_sch.model_dump(exclude_none=True)
@@ -117,7 +118,7 @@ class ClubService:
         return ClubSchema.model_validate(existing_club)
 
 
-    async def update_players_info_service(self, player_id: UUID, update_player_sch: PlayerSchemaUpdate) -> PlayerSchema | None:
+    async def update_players_info_service(self, player_id: UUID, update_player_sch: PlayerSchemaUpdate) -> Optional[PlayerSchema]:
         logger_club.info(f"Обновление игрока: ID={player_id}")
 
         update_sch_dict = update_player_sch.model_dump(exclude_none=True)
@@ -139,7 +140,7 @@ class ClubService:
         return PlayerSchema.model_validate(existing_player)
 
 
-    async def update_players_cache_info_service(self, player_id:UUID, update_dict: dict):
+    async def update_players_cache_info_service(self, player_id:UUID, update_dict: dict) -> None:
         try:
             cached_data = await self.redis.get(self.clubs_key)
             if cached_data:
@@ -169,7 +170,7 @@ class ClubService:
             await self.redis.delete(self.clubs_key)
 
 
-    async def delete_club_by_id_service(self, club_id: UUID):
+    async def delete_club_by_id_service(self, club_id: UUID) -> bool:
         logger_club.info(f"Удаление клуба: ID={club_id}")
         club_by_id = await self.club_rep.get_club_with_players(club_id)
 
@@ -185,7 +186,7 @@ class ClubService:
         return True
 
 
-    async def delete_player_by_id_service(self, player_id: UUID):
+    async def delete_player_by_id_service(self, player_id: UUID) -> bool:
         logger_club.info(f"Удаление футболиста: ID={player_id}")
         player_by_id = await self.club_rep.get_player_by_id(player_id)
 

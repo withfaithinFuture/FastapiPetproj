@@ -54,6 +54,19 @@ class NotFoundByNameError(HTTPException):
             f"{self.object_type}_name": str(self.object_name)})
 
 
+class NameDuplicateError(HTTPException):
+    def __init__(self, object_name: str, object_type: str):
+        self.object_name = object_name
+        self.object_type = object_type
+
+        logger.error(f'{self.object_type} with that name already exists: name={self.object_name}')
+
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail={
+            "error": f"{self.object_name}_already_exists",
+            "message": f"{self.object_type} with that name={self.object_name} already exists, enter a different name",
+            f"{self.object_type}_name": str(self.object_name)})
+
+
 class AgeMinorError(HTTPException):
     def __init__(self, date: dt.date, object_type: str = "user"):
         self.date = date

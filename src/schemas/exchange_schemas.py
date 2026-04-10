@@ -1,4 +1,5 @@
 from pydantic import Field, BaseModel
+from src.enums.saga_enums import SagaStatus
 from src.schemas.exchange_owners_schemas import ExchangeOwnerSchema
 
 
@@ -20,11 +21,17 @@ class ExchangeUpdateSchema(BaseModel):
     volume: None | float
 
 
-class MarketDataerviceValidationSchema(BaseModel):
+class MarketDataServiceValidationSchema(BaseModel):
     trust_score: int = Field(lt=11)
     btc_price: float
     eth_price: float
     sol_price: float
+
+
+class ExchangeFastResponseSchema(BaseModel):
+    message: str = Field(default="Заявка на создание биржи принята")
+    exchange_name: str = Field(min_length=2, pattern=letters)
+    status: SagaStatus = Field(default=SagaStatus.PENDING)
 
 
 class ExchangeResponseSchema(BaseModel):

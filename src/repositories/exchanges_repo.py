@@ -1,10 +1,9 @@
-from typing import Sequence
+from typing import Sequence, List, Optional, Union
 from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-
-from enums.saga_enums import SagaStatus
+from src.enums.saga_enums import SagaStatus
 from src.models.exchange_owners import Owner
 from src.models.exchanges import Exchange
 
@@ -25,7 +24,7 @@ class ExchangesOwnersRepository:
         return exchange
 
 
-    async def get_batch_exchanges(self, status: SagaStatus, batch_size: int) -> list[Exchange]:
+    async def get_batch_exchanges(self, status: SagaStatus, batch_size: int) -> List[Exchange]:
         query = (
             select(Exchange)
             .where(Exchange.status == status)
@@ -44,7 +43,7 @@ class ExchangesOwnersRepository:
         return result.scalars().all()
 
 
-    async def get_exchange_by_name(self, exchange_name: str) -> Exchange | None:
+    async def get_exchange_by_name(self, exchange_name: str) -> Optional[Exchange]:
         query = (
             select(Exchange)
             .where(Exchange.exchange_name == exchange_name)
@@ -55,23 +54,23 @@ class ExchangesOwnersRepository:
         return result.scalar_one_or_none()
 
 
-    async def update_object(self, upd_object):
+    async def update_object(self, upd_object) -> Union[Exchange, Owner]:
         await self.session.flush()
         await self.session.refresh(upd_object)
         return upd_object
 
 
-    async def get_exchange_by_id(self, exchange_id: UUID) -> Exchange | None:
+    async def get_exchange_by_id(self, exchange_id: UUID) -> Optional[Exchange]:
         exchange_query = select(Exchange).where(Exchange.id == exchange_id).with_for_update(skip_locked=True)
         exchange_by_id = await self.session.execute(exchange_query)
         return exchange_by_id.scalar_one_or_none()
 
 
-    async def get_owner_by_id(self, owner_id: UUID) -> Owner | None:
+    async def get_owner_by_id(self, owner_id: UUID) -> Optional[Owner]:
         owner_query = select(Owner).where(Owner.id == owner_id).with_for_update(skip_locked=True)
         owner_by_id = await self.session.execute(owner_query)
         return owner_by_id.scalar_one_or_none()
 
 
-    async def delete_exchange_or_owner(self, delete_obj):
+    async def delete_exchange_or_owner(self, delete_obj) -> None:
         await self.session.delete(delete_obj)

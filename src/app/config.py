@@ -4,7 +4,6 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-                #валидация connect str
     postgres_url: PostgresDsn = Field(env='POSTGRES_URL')
     base_market_data_service_url: str = Field(env='BASE_MARKET_DATA_SERVICE_URL')
     base_market_data_service_timeout: float = Field(env='BASE_MARKET_DATA_SERVICE_TIMEOUT')

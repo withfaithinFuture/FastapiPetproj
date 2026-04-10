@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import List, Optional
 from uuid import UUID
 import ujson
 from redis.asyncio import Redis
@@ -17,7 +18,7 @@ logger_shares = logging.getLogger("services.shares")
 
 class SharesService:
 
-    def __init__(self, session: AsyncSession, redis: Redis, shares_key = "shares:all"):
+    def __init__(self, session: AsyncSession, redis: Redis, shares_key: str = "shares:all"):
         self.session = session
         self.user_rep = user_rep(self.session)
         self.redis = redis
@@ -60,7 +61,7 @@ class SharesService:
         return response_schema
 
 
-    async def get_shares_info_service(self) -> list[UserSchema]:
+    async def get_shares_info_service(self) -> List[UserSchema]:
         logger_shares.info("Запрос информации об акциях")
 
         cashed_data = await self.redis.get(self.shares_key)
@@ -79,7 +80,7 @@ class SharesService:
         return users_schemas
 
 
-    async def update_user_shares_info_service(self, user_id: UUID, update_data: UserSchemaUpdate) -> UserSchemaUpdate | None:
+    async def update_user_shares_info_service(self, user_id: UUID, update_data: UserSchemaUpdate) -> Optional[UserSchemaUpdate]:
         logger_shares.info(f"Обновление пользователя: ID={user_id}")
 
         update_data_dict = update_data.model_dump(exclude_none=True, mode='json')
@@ -115,7 +116,7 @@ class SharesService:
         return UserSchemaUpdate.model_validate(existing_user)
 
 
-    async def update_share_info_service(self, share_id: UUID, update_info: SharesSchemaUpdate) -> SharesSchemaUpdate | None:
+    async def update_share_info_service(self, share_id: UUID, update_info: SharesSchemaUpdate) -> Optional[SharesSchemaUpdate]:
         logger_shares.info(f"Обновление акции: ID={share_id}")
 
         update_info_dict = update_info.model_dump(exclude_none=True, mode='json')
@@ -158,7 +159,7 @@ class SharesService:
         return SharesSchemaUpdate.model_validate(existing_share)
 
 
-    async def delete_user_by_id(self, owner_id: UUID):
+    async def delete_user_by_id(self, owner_id: UUID) -> bool:
         logger_shares.info(f"Удаление владельца акций: ID={owner_id}")
         owner_by_id = await self.user_rep.get_user_by_id(owner_id)
 
@@ -174,7 +175,7 @@ class SharesService:
         return True
 
 
-    async def delete_share_by_id(self, share_id: UUID):
+    async def delete_share_by_id(self, share_id: UUID) -> bool:
         logger_shares.info(f"Удаление акции: ID={share_id}")
         share_by_id = await self.user_rep.get_share_by_id(share_id)
 
