@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     redis_url: str = Field(env='REDIS_URL')
     SERVICE_NAME: str = "market_data_service"
     SERVICE_EXCHANGE_KEY: str = Field(env='SERVICE_EXCHANGE_KEY')
+    KAFKA_URL: str = Field(env='KAFKA_URL')
+    topic_enrich_name: str = 'enrich_user_shares_data'
 
     class Config:
         env_file = Path(__file__).resolve().parent.parent.parent / ".env"

@@ -12,6 +12,7 @@ class UserSchema(BaseModel):
     username: str = Field(min_length=3, pattern=letters)
     email: EmailStr
     age: dt.date = Field(examples=['2000-01-02'])
+    shares_broker: str = Field(examples=['T-Bank', 'VTB', 'Sber', 'Alfa-Bank', 'Gazprombank'])
     user_shares: List["SharesSchema"]
 
     @field_validator('age')
@@ -22,6 +23,11 @@ class UserSchema(BaseModel):
         birth_date = dt.date(year, month, day)
         validate_age(birth_date)
         return value
+
+    @field_validator('shares_broker')
+    @classmethod
+    def get_lowercase(cls, value: str) -> str:
+        return value.lower()
 
     class Config:
         from_attributes = True
@@ -44,3 +50,9 @@ class UserSchemaUpdate(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UserSharesFastResponseSchema(BaseModel):
+    message: str = Field(default="Заявка на создание биржи принята")
+    username: str = Field(min_length=2, pattern=letters)
+    user_shares: List["SharesSchema"]
