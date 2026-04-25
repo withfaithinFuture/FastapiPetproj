@@ -1,10 +1,9 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
-
-from src.services.schemas.shares_users_schemas import UserSchemaUpdate, UserSchema
-from src.services.schemas.shares_schemas import SharesSchemaUpdate
+from src.schemas.shares_schemas import SharesSchemaUpdate
+from src.schemas.shares_users_schemas import UserSchema, UserSchemaUpdate
+from src.services.shares_service import SharesService
 from src.app.dependencies import get_shares_service
-from services.services.shares_service import SharesService
 
 
 router = APIRouter(tags=['Actions with shares'])
@@ -26,7 +25,7 @@ async def update_user_shares(user_id:UUID, update_data: UserSchemaUpdate, shsrv:
 
 @router.patch('/shares/{share_id}', status_code=status.HTTP_201_CREATED)
 async def update_user_shares(share_id: UUID, update_data: SharesSchemaUpdate, shsrv: SharesService = Depends(get_shares_service)):
-    return  await shsrv.update_share_info_service(share_id, update_data)
+    return await shsrv.update_share_info_service(share_id, update_data)
 
 
 @router.delete('/shares/{share_id}', status_code=status.HTTP_204_NO_CONTENT)
