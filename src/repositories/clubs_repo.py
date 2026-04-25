@@ -14,7 +14,7 @@ class ClubFootballersRepository:
         self.session = session
 
 
-    async def create_club(self, club: Club, players: list[Player]) -> Tuple[Club, list[Player]]:
+    async def create_club(self, club: Club, players: list[Player]) -> Tuple[Club, List[Player]]:
         self.session.add(club)
         self.session.add_all(players)
         await self.session.flush()
