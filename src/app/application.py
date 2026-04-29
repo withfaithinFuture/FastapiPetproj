@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from src.app.workers.outbox_worker import OutboxWorker
 from src.app.config import settings
-from src.db.redis_client import redis_client
+from src.client.redis_client import redis_client
 from src.routers.shares_router import router as shares_router
 from src.routers.exchange_router import router as exchange_router
 from src.routers.clubs_router import router as clubs_router

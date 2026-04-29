@@ -4,7 +4,6 @@ import uuid
 from typing import List, Optional
 from uuid import UUID
 import ujson
-from pydantic import BaseModel
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.enums.outbox_enums import OutboxStatus

@@ -166,3 +166,21 @@ class ExternalClientError(HTTPException):
                 "message": self.message,
             }
         )
+
+
+class RunTimeError(HTTPException):
+    def __init__(self, client_name: str):
+        self.client_name = client_name
+
+        self.error = f"{self.client_name}_is_invalid"
+        self.message = f"{self.client_name} is not started"
+
+        logger.error(f'{self.client_name} is not started')
+
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": self.error,
+                "message": self.message
+            }
+        )

@@ -13,5 +13,5 @@ class OutboxEvent(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True)
     topic: Mapped[str] = mapped_column(sa.String(), nullable=False)
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    status: Mapped[str] = mapped_column(sa.String(), default=OutboxStatus.PENDING)
+    status: Mapped[str] = mapped_column(sa.String(), default=OutboxStatus.NEW)
     created_at: Mapped[datetime] = mapped_column(sa.DateTime, nullable=False, default=datetime.now)
