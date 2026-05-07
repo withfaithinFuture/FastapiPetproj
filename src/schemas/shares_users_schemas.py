@@ -56,3 +56,7 @@ class UserSharesFastResponseSchema(BaseModel):
     message: str = Field(default="Заявка на создание биржи принята")
     username: str = Field(min_length=2, pattern=letters)
     user_shares: List["SharesSchema"]
+    
+
+    class Config:
+        from_attributes = True

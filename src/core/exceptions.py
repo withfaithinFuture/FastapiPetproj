@@ -54,7 +54,7 @@ class NotFoundByNameError(HTTPException):
             f"{self.object_type}_name": str(self.object_name)})
 
 
-class NameDuplicateError(HTTPException):
+class AlreadyExistsError(HTTPException):
     def __init__(self, object_name: str, object_type: str):
         self.object_name = object_name
         self.object_type = object_type
@@ -168,7 +168,7 @@ class ExternalClientError(HTTPException):
         )
 
 
-class RunTimeError(HTTPException):
+class ClientNotStartedError(HTTPException):
     def __init__(self, client_name: str):
         self.client_name = client_name
 

@@ -6,10 +6,11 @@ from uuid import UUID
 import ujson
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.schemas.outbox_schemas import OutboxPayloadSchema
 from src.enums.outbox_enums import OutboxStatus
 from src.app.config import settings
 from src.models.outbox import OutboxEvent
-from src.core.exceptions import NotFoundError, NameDuplicateError
+from src.core.exceptions import NotFoundError, AlreadyExistsError
 from src.schemas.shares_schemas import SharesSchemaUpdate, SharesSchema
 from src.schemas.shares_users_schemas import UserSchema, UserSchemaUpdate, UserSharesFastResponseSchema
 from src.models.shares import Share
@@ -37,7 +38,7 @@ class SharesService:
         existing_user = await self.user_rep.get_user_by_username(username=user_data_dict.get('username'))
         if existing_user:
             logger_shares.info(f"Пользователь с username = {username} уже существует в БД, введите другой username")
-            raise NameDuplicateError(object_name=username, object_type='User')
+            raise AlreadyExistsError(object_name=username, object_type='User')
 
         new_user = User(**user_data_dict)
         shares = []
@@ -51,18 +52,12 @@ class SharesService:
         new_user.user_shares = shares
 
         event_id = uuid.uuid4()
-        outbox_payload = {
-            "event_id": str(event_id),
-            "action": "ENRICH_USER_SHARES_DATA",
-            "username": username,
-            "email": user_data_dict.get('email'),
-            "shares_broker": user_data_dict.get('shares_broker')
-        }
+        outbox_payload = OutboxPayloadSchema(event_id=str(event_id), username=username, email=user_data_dict.get('email'), shares_broker=user_data_dict.get('shares_broker'))
 
         outbox_event = OutboxEvent(
             id=event_id,
             topic=settings.topic_enrich_name,
-            payload=outbox_payload,
+            payload=outbox_payload.model_dump(mode='json'),
             status=OutboxStatus.PENDING
         )
 
@@ -85,7 +80,7 @@ class SharesService:
             logger_shares.error(f"Ошибка добавления в кэш: {e}")
             await self.redis.delete(self.shares_key)
 
-        return UserSharesFastResponseSchema(username=username, user_shares=[SharesSchema.model_validate(share) for share in shares])
+        return UserSharesFastResponseSchema.model_validate(saved_user)
 
 
     async def get_shares_info_service(self) -> List[UserSchema]:

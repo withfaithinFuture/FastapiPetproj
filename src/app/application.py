@@ -19,10 +19,12 @@ outbox_worker = OutboxWorker(kafka_client=kafka_producer)
 async def lifespan(app: FastAPI):
     await kafka_producer.start()
     outbox_start_task = asyncio.create_task(outbox_worker.run(batch_size=30, interval_sec=3.0))
+    outbox_start_recovery_task = asyncio.create_task(outbox_worker.run_recovery(interval_sec=30.0))
 
     yield
 
     outbox_start_task.cancel()
+    outbox_start_recovery_task.cancel()
     await kafka_producer.stop()
     await redis_client.close()
 
