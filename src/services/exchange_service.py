@@ -12,7 +12,7 @@ from src.schemas.exchange_schemas import ExchangeCreateSchema, ExchangeResponseS
     MarketDataServiceValidationSchema, ExchangeFastResponseSchema
 from src.client.market_data_client import MarketDataClient
 from src.core.exceptions import NotFoundError, NotFoundByNameError, LocalDBError, SagaTransactionError, \
-    NameDuplicateError
+    NotFoundByNameError
 from src.repositories.exchanges_repo import ExchangesOwnersRepository as exch_rep
 from src.app.config import settings
 
@@ -35,7 +35,7 @@ class ExchangeService:
 
         if existing_exchange:
             logger_exchange.info(f"Биржа с именем {exchange_name} уже существует в БД")
-            raise NameDuplicateError(object_name=exchange_name, object_type='Exchange')
+            raise NotFoundByNameError(object_name=exchange_name, object_type='Exchange')
 
         exchange_dict = exchange_data.model_dump(exclude='owner')
         owner_dict = exchange_data.owner.model_dump()
@@ -161,7 +161,6 @@ class ExchangeService:
         except Exception as e:
             logger_exchange.error(f"Ошибка при обновлении кэша владельца: {e}")
             await self.redis.delete(self.exchange_key)
-            await self.redis.delete(f"exchange:{exist_owner.exchange.exchange_name}")
 
         logger_exchange.info(f"Владелец обновлен: ID={owner_id}")
 

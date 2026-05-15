@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Dict, List
 import ujson
@@ -5,6 +6,7 @@ from aiokafka import AIOKafkaProducer
 from aiokafka.errors import KafkaError
 from tenacity import retry, stop_after_attempt, wait_exponential_jitter, retry_if_exception_type
 from src.core.exceptions import ClientNotStartedError
+
 
 logger = logging.getLogger('workers.kafka_producer')
 
@@ -19,6 +21,7 @@ class KafkaProducerClient:
             enable_idempotence=True,
         )
         self.is_started = False
+        self.lock = asyncio.Lock()
 
 
     @staticmethod
@@ -29,23 +32,25 @@ class KafkaProducerClient:
 
 
     async def start(self) -> None:
-        if self.is_started:
-            logger.warning("Producer из MVC-сервиса уже запущен")
-            return
+        async with self.lock:
+            if self.is_started:
+                logger.warning("Producer из MVC-сервиса уже запущен")
+                return
 
-        logger.info("Producer из MVC-сервиса начал работу")
-        await self.producer.start()
-        self.is_started = True
+            logger.info("Producer из MVC-сервиса начал работу")
+            await self.producer.start()
+            self.is_started = True
 
 
     async def stop(self) -> None:
-        if not self.is_started:
-            logger.warning("Producer из MVC-сервиса уже остановлен")
-            return
+        async with self.lock:
+            if not self.is_started:
+                logger.warning("Producer из MVC-сервиса уже остановлен")
+                return
 
-        logger.info("Producer из MVC-сервиса закончил работу")
-        await self.producer.stop()
-        self.is_started = False
+            logger.info("Producer из MVC-сервиса закончил работу")
+            await self.producer.stop()
+            self.is_started = False
 
 
     @retry(

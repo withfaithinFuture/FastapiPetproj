@@ -7,7 +7,7 @@ from src.schemas.outbox_schemas import OutboxDLQPayloadSchema
 from src.app.config import settings
 from src.enums.outbox_enums import OutboxStatus
 from src.models.outbox import OutboxEvent
-from src.client.kafka_client import KafkaProducerClient
+from src.client.kafka_producer import KafkaProducerClient
 from src.db.db import new_session
 
 
@@ -92,8 +92,7 @@ class OutboxWorker:
 
                     except Exception as dlq_error:
                         logger.error(f"Не удалось отправить в DLQ: {dlq_error}")
-
-                    failed_ids.append(event['id'])
+                        retry_ids.append(event['id'])
 
 
         if successful_ids or retry_ids or failed_ids:

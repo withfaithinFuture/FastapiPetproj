@@ -9,7 +9,7 @@ from src.routers.shares_router import router as shares_router
 from src.routers.exchange_router import router as exchange_router
 from src.routers.clubs_router import router as clubs_router
 from src.routers.healthcheck_router import router as healthcheck_router
-from src.client.kafka_client import KafkaProducerClient
+from src.client.kafka_producer import KafkaProducerClient
 
 
 kafka_producer = KafkaProducerClient(servers=settings.KAFKA_URL)

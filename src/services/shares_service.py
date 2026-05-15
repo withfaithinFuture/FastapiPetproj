@@ -11,7 +11,7 @@ from src.enums.outbox_enums import OutboxStatus
 from src.app.config import settings
 from src.models.outbox import OutboxEvent
 from src.core.exceptions import NotFoundError, AlreadyExistsError
-from src.schemas.shares_schemas import SharesSchemaUpdate, SharesSchema
+from src.schemas.shares_schemas import SharesSchemaUpdate
 from src.schemas.shares_users_schemas import UserSchema, UserSchemaUpdate, UserSharesFastResponseSchema
 from src.models.shares import Share
 from src.models.users import User
