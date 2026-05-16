@@ -1,7 +1,7 @@
 from src.core.exceptions import UnavailableServiceError, NotFoundByNameError, ExternalClientError
 
 
-def check_status(response, object_name: str, object_type: str):
+def check_status(response, object_name: str, object_type: str) -> None:
     if response.status_code >= 500:
         raise UnavailableServiceError(service_name=object_name)
 

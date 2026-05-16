@@ -1,4 +1,3 @@
-import logging
 from arq import cron
 from arq.connections import RedisSettings
 from redis.asyncio import Redis

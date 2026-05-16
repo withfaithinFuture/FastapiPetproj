@@ -54,7 +54,7 @@ class NotFoundByNameError(HTTPException):
             f"{self.object_type}_name": str(self.object_name)})
 
 
-class NameDuplicateError(HTTPException):
+class AlreadyExistsError(HTTPException):
     def __init__(self, object_name: str, object_type: str):
         self.object_name = object_name
         self.object_type = object_type
@@ -164,5 +164,23 @@ class ExternalClientError(HTTPException):
             detail={
                 "error": self.error,
                 "message": self.message,
+            }
+        )
+
+
+class ClientNotStartedError(HTTPException):
+    def __init__(self, client_name: str):
+        self.client_name = client_name
+
+        self.error = f"{self.client_name}_is_invalid"
+        self.message = f"{self.client_name} is not started"
+
+        logger.error(f'{self.client_name} is not started')
+
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": self.error,
+                "message": self.message
             }
         )

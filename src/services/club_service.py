@@ -1,11 +1,11 @@
 import json
 import logging
-from typing import Union, Optional, List, Dict, Any, cast
+from typing import Optional, List
 from uuid import UUID
 import ujson
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.db.redis_client import set_cache_retry
+from src.client.redis_client import set_cache_retry
 from src.core.exceptions import NotFoundError
 from src.schemas.player_schemas import PlayerSchemaUpdate
 from src.models.football_players import Player

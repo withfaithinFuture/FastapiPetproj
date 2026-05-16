@@ -7,8 +7,10 @@ from src.db.base_service import Base
 class User(Base):
     __tablename__ = 'users'
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    username: Mapped[str] = mapped_column(sa.String())
-    email: Mapped[str] = mapped_column(sa.String())
-    age: Mapped[sa.Date] = mapped_column(sa.Date())
+    username: Mapped[str] = mapped_column(sa.String(), nullable=False)
+    email: Mapped[str] = mapped_column(sa.String(), nullable=False)
+    age: Mapped[sa.Date] = mapped_column(sa.Date(), nullable=False)
+    shares_broker: Mapped[str] = mapped_column(sa.String(), nullable=False)
+
 
     user_shares = relationship('Share', back_populates='owner_share', cascade='all, delete-orphan', lazy='selectin')

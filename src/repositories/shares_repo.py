@@ -34,6 +34,12 @@ class UserSharesRepository:
         return result.scalar_one_or_none()
 
 
+    async def get_user_by_username(self, username: str) -> Optional[User]:
+        query = select(User).where(User.username == username)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+
+
     async def get_share_by_id(self, upd_id: UUID) -> Optional[Share]:
         query = select(Share).where(Share.id == upd_id).with_for_update(skip_locked=True)
         result = await self.session.execute(query)

@@ -18,7 +18,7 @@ logger_cache = logging.getLogger('services.cache')
     retry=retry_if_exception_type((CacheNotSavedError, ConnectionError, TimeoutError)),
     reraise=True
 )
-async def set_cache_retry(redis: Redis, key: str, value: str, expire: int):
+async def set_cache_retry(redis: Redis, key: str, value: str, expire: int) -> None:
     await redis.set(name=key, value=value, ex=expire)
     saved_cache_check = await redis.exists(key)
 

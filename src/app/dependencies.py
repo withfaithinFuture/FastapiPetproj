@@ -1,9 +1,9 @@
 from arq import create_pool
-from arq.connections import RedisSettings, ArqRedis
+from arq.connections import RedisSettings
 from fastapi import Depends
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.db.redis_client import get_redis
+from src.client.redis_client import get_redis
 from src.services.club_service import ClubService
 from src.services.exchange_service import ExchangeService
 from src.services.shares_service import SharesService
